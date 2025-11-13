@@ -1,0 +1,113 @@
+{
+  "claude_sql_responses": [
+    {
+      "query_id": "q001",
+      "response": {
+        "id": "msg_01ABC123",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "SELECT COUNT(*) as new_users\nFROM users\nWHERE created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')\n  AND created_at < DATE_TRUNC('month', CURRENT_DATE);"
+          }
+        ],
+        "model": "claude-3-5-sonnet-20241022",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 1250,
+          "output_tokens": 85
+        }
+      }
+    },
+    {
+      "query_id": "q002",
+      "response": {
+        "id": "msg_02DEF456",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "SELECT SUM(total_amount) as total_sales\nFROM orders\nWHERE order_date >= DATE_TRUNC('week', CURRENT_DATE)\n  AND order_date < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week';"
+          }
+        ],
+        "model": "claude-3-5-sonnet-20241022",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 1180,
+          "output_tokens": 72
+        }
+      }
+    }
+  ],
+  "claude_knowledge_responses": [
+    {
+      "query_id": "k001",
+      "response": {
+        "id": "msg_03GHI789",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "데이터베이스 백업 정책:\n\n1. **자동 백업**: 매일 오전 2시 전체 백업 수행\n2. **보관 기간**: \n   - 일일 백업: 7일간 보관\n   - 주간 백업: 4주간 보관\n   - 월간 백업: 12개월간 보관\n3. **백업 위치**: S3 버킷 (암호화 저장)\n4. **복구 테스트**: 매월 1회 백업 복구 테스트 실시\n\n출처: 운영 매뉴얼 3.2절"
+          }
+        ],
+        "model": "claude-3-5-sonnet-20241022",
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 2150,
+          "output_tokens": 180
+        }
+      }
+    }
+  ],
+  "error_responses": [
+    {
+      "type": "authentication_error",
+      "error": {
+        "type": "authentication_error",
+        "message": "Invalid API key provided"
+      }
+    },
+    {
+      "type": "rate_limit_error",
+      "error": {
+        "type": "rate_limit_error",
+        "message": "Rate limit exceeded. Please try again in 60 seconds."
+      }
+    },
+    {
+      "type": "overloaded_error",
+      "error": {
+        "type": "overloaded_error",
+        "message": "The API is temporarily overloaded. Please try again."
+      }
+    },
+    {
+      "type": "timeout_error",
+      "error": {
+        "type": "timeout_error",
+        "message": "Request timeout after 60 seconds"
+      }
+    }
+  ],
+  "intent_classification_responses": [
+    {
+      "query": "지난달 신규 가입자 수는?",
+      "intent": "text_to_sql",
+      "confidence": 0.95
+    },
+    {
+      "query": "데이터베이스 백업 정책이 뭐야?",
+      "intent": "knowledge_discovery",
+      "confidence": 0.92
+    },
+    {
+      "query": "안녕하세요",
+      "intent": "unknown",
+      "confidence": 0.98
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "text_to_sql_queries": [
+    {
+      "id": "q001",
+      "query": "지난달 신규 가입자 수는?",
+      "intent": "text_to_sql",
+      "expected_tables": ["users"],
+      "description": "Simple aggregation query for new user signups"
+    },
+    {
+      "id": "q002",
+      "query": "이번 주 주문 금액 총합을 알려줘",
+      "intent": "text_to_sql",
+      "expected_tables": ["orders"],
+      "description": "Sum aggregation with date filtering"
+    },
+    {
+      "id": "q003",
+      "query": "가장 많이 판매된 상품 top 5는?",
+      "intent": "text_to_sql",
+      "expected_tables": ["products", "order_items"],
+      "description": "Join query with sorting and limit"
+    },
+    {
+      "id": "q004",
+      "query": "부서별 평균 급여를 구해줘",
+      "intent": "text_to_sql",
+      "expected_tables": ["employees", "departments"],
+      "description": "Group by with average aggregation"
+    },
+    {
+      "id": "q005",
+      "query": "서울에 사는 고객들의 최근 주문 내역",
+      "intent": "text_to_sql",
+      "expected_tables": ["customers", "orders"],
+      "description": "Join with string filtering"
+    }
+  ],
+  "knowledge_discovery_queries": [
+    {
+      "id": "k001",
+      "query": "데이터베이스 백업 정책이 뭐야?",
+      "intent": "knowledge_discovery",
+      "expected_context": "backup policy, retention period",
+      "description": "Policy documentation retrieval"
+    },
+    {
+      "id": "k002",
+      "query": "API 인증 방법 알려줘",
+      "intent": "knowledge_discovery",
+      "expected_context": "authentication, API key, OAuth",
+      "description": "Technical documentation search"
+    },
+    {
+      "id": "k003",
+      "query": "신규 기능 배포 절차가 어떻게 되나요?",
+      "intent": "knowledge_discovery",
+      "expected_context": "deployment process, CI/CD",
+      "description": "Process documentation retrieval"
+    }
+  ],
+  "edge_cases": [
+    {
+      "id": "e001",
+      "query": "지난달 신규 가입자 수는? 그리고 이번 달은?",
+      "intent": "text_to_sql",
+      "type": "multi_turn",
+      "description": "Follow-up question testing"
+    },
+    {
+      "id": "e002",
+      "query": "Show me last month's new users",
+      "intent": "text_to_sql",
+      "type": "english_query",
+      "description": "English language query"
+    },
+    {
+      "id": "e003",
+      "query": "",
+      "intent": "unknown",
+      "type": "empty_query",
+      "description": "Empty query handling"
+    },
+    {
+      "id": "e004",
+      "query": "안녕하세요",
+      "intent": "unknown",
+      "type": "non_analytical",
+      "description": "Greeting or non-analytical query"
+    }
+  ]
+}
