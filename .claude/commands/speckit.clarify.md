@@ -1,5 +1,5 @@
 ---
-description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
+description: 최대 5개의 매우 타겟팅된 명확화 질문을 통해 현재 기능 명세서의 불명확한 영역을 식별하고 답변을 명세서에 다시 인코딩합니다.
 ---
 
 ## User Input

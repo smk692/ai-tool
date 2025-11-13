@@ -1,78 +1,229 @@
 ---
-description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync
+description: AI 데이터 분석 어시스턴트 프로젝트 헌법 - 오픈소스 기반 데이터 민주화 원칙
 ---
 
-## User Input
+# AI 데이터 분석 어시스턴트 - 프로젝트 헌법
 
-```text
-$ARGUMENTS
-```
+**프로젝트명**: AI 데이터 분석 어시스턴트 (물어보새 기반)
+**헌법 버전**: 1.0.0
+**제정일**: 2025-01-13
+**최종 수정일**: 2025-01-13
 
-You **MUST** consider the user input before proceeding (if not empty).
+---
 
-## Outline
+## 📜 서문 (Preamble)
 
-You are updating the project constitution at `.specify/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
+본 프로젝트는 우아한형제들의 '물어보새' 시스템 사례를 기반으로, **100% 오픈소스 기술 스택**을 활용하여 **데이터 민주화**를 실현하는 AI 데이터 분석 어시스턴트를 구축한다.
 
-Follow this execution flow:
+**핵심 비전**: "모든 구성원이 SQL 전문 지식 없이도 자연어만으로 데이터를 분석하고 인사이트를 얻을 수 있는 환경 구축"
 
-1. Load the existing constitution template at `.specify/memory/constitution.md`.
-   - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
-   **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
+**핵심 가치**:
+- **오픈소스 우선**: LLM API를 제외한 모든 컴포넌트는 오픈소스 활용
+- **비용 최소화**: 월 $50 이하 운영 비용 달성
+- **데이터 품질**: "Garbage in, Garbage out" - 메타데이터 품질 최우선
+- **사용자 중심**: 기술 목표가 아닌 실제 사용자 문제 해결
+- **점진적 진화**: MVP → 확장 → 고도화 단계적 접근
 
-2. Collect/derive values for placeholders:
-   - If user input (conversation) supplies a value, use it.
-   - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
-   - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
-   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
-     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
-     - MINOR: New principle/section added or materially expanded guidance.
-     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
-   - If version bump type ambiguous, propose reasoning before finalizing.
+---
 
-3. Draft the updated constitution content:
-   - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
-   - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
-   - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
-   - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+## 🎯 원칙 (Principles)
 
-4. Consistency propagation checklist (convert prior checklist into active validations):
-   - Read `.specify/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.
-   - Read `.specify/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
-   - Read `.specify/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
-   - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
-   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
+### 원칙 1: 오픈소스 우선 (Open Source First)
 
-5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
-   - Version change: old → new
-   - List of modified principles (old title → new title if renamed)
-   - Added sections
-   - Removed sections
-   - Templates requiring updates (✅ updated / ⚠ pending) with file paths
-   - Follow-up TODOs if any placeholders intentionally deferred.
+**선언**: 본 프로젝트는 LLM API를 제외한 모든 기술 스택을 오픈소스로 구성한다.
 
-6. Validation before final output:
-   - No remaining unexplained bracket tokens.
-   - Version line matches report.
-   - Dates ISO format YYYY-MM-DD.
-   - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
+**규칙**:
+- LangChain, LangGraph, ChromaDB, sentence-transformers, rank-bm25, PostgreSQL, SQLite, Streamlit 등 **Apache 2.0, MIT, Public Domain 라이선스** 기술만 사용
+- 유료 SaaS 솔루션(Pinecone, Weaviate, Qdrant Cloud 등) 사용 금지
+- 모든 데이터는 로컬 또는 자체 인프라에 저장
+- A/B 테스팅, 모니터링 등 부가 기능도 오픈소스로 구현
 
-7. Write the completed constitution back to `.specify/memory/constitution.md` (overwrite).
+**근거**: 비용 절감($220/월), 데이터 소유권 확보, 기술 종속성 제거
 
-8. Output a final summary to the user with:
-   - New version and bump rationale.
-   - Any files flagged for manual follow-up.
-   - Suggested commit message (e.g., `docs: amend constitution to vX.Y.Z (principle additions + governance update)`).
+---
 
-Formatting & Style Requirements:
+### 원칙 2: 비용 최소화 (Cost Minimization)
 
-- Use Markdown headings exactly as in the template (do not demote/promote levels).
-- Wrap long rationale lines to keep readability (<100 chars ideally) but do not hard enforce with awkward breaks.
-- Keep a single blank line between sections.
-- Avoid trailing whitespace.
+**선언**: 월 운영 비용을 $50 이하로 유지한다.
 
-If the user supplies partial updates (e.g., only one principle revision), still perform validation and version decision steps.
+**규칙**:
+- **인프라 비용**: $0 (Docker 기반 로컬/자체 서버 배포)
+- **LLM API 비용**: $50 이하
+  - 프롬프트 압축으로 토큰 사용량 60-70% 절감
+  - 응답 캐싱으로 반복 질문 70% 절감
+  - 관련 테이블/칼럼만 프롬프트에 포함
+- **모니터링**: SQLite 기반 자체 로깅 ($0)
+- **비용 추적**: 실시간 토큰 사용량 및 비용 모니터링 필수
 
-If critical info missing (e.g., ratification date truly unknown), insert `TODO(<FIELD_NAME>): explanation` and include in the Sync Impact Report under deferred items.
+**근거**: 개인/스타트업도 부담 없이 운영 가능한 시스템 구축
 
-Do not create a new template; always operate on the existing `.specify/memory/constitution.md` file.
+---
+
+### 원칙 3: 데이터 품질 우선 (Data Quality First)
+
+**선언**: "Garbage in, Garbage out" - 메타데이터와 Few-shot 예제의 품질이 시스템 성능을 결정한다.
+
+**규칙**:
+- **메타데이터 고도화**: 테이블/칼럼 설명, 비즈니스 용어, 샘플 값, 활용 예시 필수 작성
+- **Few-shot 예제 관리**: 테이블당 최소 3-5개, 성공률 추적, 지속적 업데이트
+- **용어 사전 구축**: 비즈니스 용어 ↔ DB 스키마 용어 매핑
+- **데이터 품질 검증**: 주기적 메타데이터 업데이트, 예제 유효성 검증
+
+**근거**: 높은 품질의 메타데이터가 쿼리 생성 정확도 60% → 85% 향상
+
+---
+
+### 원칙 4: 사용자 중심 설계 (User-Centric Design)
+
+**선언**: 기술적 완성도보다 사용자 문제 해결을 우선한다.
+
+**규칙**:
+- **응답 시간**: Text-to-SQL 30초~1분, Knowledge Discovery 실시간
+- **정확도**: 쿼리 생성 정확도 85% 이상, 업무 참조 가능 수준
+- **인터페이스**: 비전문가도 쉽게 사용 가능한 자연어 UI
+- **피드백 루프**: 사용자 피드백 수집 및 지속적 개선
+- **오류 처리**: 명확한 오류 메시지, 자동 수정 제안
+
+**근거**: 기술 목표가 아닌 실제 사용자 pain point 해결
+
+---
+
+### 원칙 5: 점진적 진화 (Progressive Evolution)
+
+**선언**: MVP부터 시작하여 검증된 기능을 단계적으로 확장한다.
+
+**규칙**:
+- **Phase 1 (MVP)**: Text-to-SQL + 기본 RAG (2-3주)
+- **Phase 2 (확장)**: Data Discovery, Memory Management (2주)
+- **Phase 3 (고도화)**: Knowledge Discovery, 고급 기능 (선택)
+- **반복 주기**: 2주 스프린트, 빠른 피드백 및 개선
+- **우선순위**: P0 (필수) → P1 (중요) → P2 (선택)
+
+**근거**: 작은 성공 → 확장 → 진화를 통한 리스크 최소화
+
+---
+
+### 원칙 6: 성능 최적화 (Performance Optimization)
+
+**선언**: 응답 시간과 비용을 지속적으로 최적화한다.
+
+**규칙**:
+- **BM25 사전 계산**: 검색 시간 5초 → 0.01초 (500배 개선)
+- **병렬 처리**: Vector + BM25 검색 병렬 실행
+- **임베딩 배치 처리**: 배치 처리로 80% 시간 절감
+- **프롬프트 압축**: 관련 테이블/칼럼만 포함, Few-shot top-k=3
+- **캐싱 전략**: 응답 캐싱(24시간), BM25 인덱스 저장
+
+**근거**: 사용자 경험 향상 및 LLM API 비용 절감
+
+---
+
+### 원칙 7: 보안 및 권한 관리 (Security & Access Control)
+
+**선언**: 데이터 접근 권한을 엄격히 관리하고 SQL Injection을 방지한다.
+
+**규칙**:
+- **읽기 전용 계정**: DB 읽기 권한만 부여
+- **SELECT만 허용**: DELETE, DROP, TRUNCATE 금지
+- **SQL Injection 방지**: 파라미터 바인딩, 입력 검증, 쿼리 패턴 화이트리스트
+- **민감 정보 보호**: 환경 변수로 API 키 관리, 로그에 개인정보 미포함
+- **쿼리 검증**: sqlparse 기반 문법 체크, EXPLAIN 실행 계획 분석
+
+**근거**: 데이터 보안 및 시스템 안전성 확보
+
+---
+
+### 원칙 8: 테스팅 및 품질 보증 (Testing & Quality Assurance)
+
+**선언**: 모든 핵심 기능은 자동화된 테스트로 검증한다.
+
+**규칙**:
+- **단위 테스트 커버리지**: 80% 이상
+- **통합 테스트**: Text-to-SQL E2E, RAG 검색 정확도
+- **성능 테스트**: 응답 시간, 처리량, 동시 사용자
+- **정확도 테스트**: 쿼리 생성 정확도 85% 이상, 검색 Top-5 정확도 90% 이상
+- **회귀 테스트**: 신규 기능 추가 시 기존 기능 테스트
+
+**근거**: 안정적인 시스템 운영 및 지속적 품질 개선
+
+---
+
+### 원칙 9: 문서화 및 지식 공유 (Documentation & Knowledge Sharing)
+
+**선언**: 모든 주요 결정, 구현, 사용법은 문서화한다.
+
+**규칙**:
+- **기능 명세서** (spec.md): 요구사항, 입출력, 예외 처리
+- **구현 계획** (plan.md): 로드맵, 마일스톤, 리스크
+- **작업 분해** (tasks.md): 상세 작업, 체크리스트, 우선순위
+- **사용자 가이드**: README.md, UI 사용법, 예제
+- **API 문서**: Docstring, 인터페이스 명세
+- **성능 분석 문서**: 최적화 전략, 벤치마크 결과
+
+**근거**: 유지보수성 향상, 신규 개발자 온보딩, 지식 공유
+
+---
+
+### 원칙 10: 확장 가능성 (Scalability & Extensibility)
+
+**선언**: 미래 확장을 고려한 모듈화된 아키텍처를 유지한다.
+
+**규칙**:
+- **모듈화**: 각 기능(RAG, Text-to-SQL, Memory)은 독립적 모듈
+- **인터페이스 추상화**: DB, LLM, Vector Store는 인터페이스로 추상화
+- **플러그인 구조**: 신규 체인 추가 시 기존 코드 수정 최소화
+- **확장 로드맵**:
+  - 단기(3개월): Multi-turn 고도화, 쿼리 자동 실행, 시각화
+  - 중기(6개월): 스케줄 쿼리, 알림, 협업 기능
+  - 장기(12개월): Analytics Assistant, 멀티 DB, 에이전트 생태계
+
+**근거**: 지속적 기능 확장 및 유지보수성 확보
+
+---
+
+## 🏛️ 거버넌스 (Governance)
+
+### 헌법 개정 절차
+
+1. **제안**: 프로젝트 기여자 누구나 개정 제안 가능
+2. **논의**: GitHub Issue로 최소 1주일 논의
+3. **투표**: 주요 기여자 2/3 이상 찬성 시 개정
+4. **버전 관리**: 시맨틱 버저닝 (MAJOR.MINOR.PATCH)
+   - MAJOR: 원칙 삭제 또는 근본 변경
+   - MINOR: 새로운 원칙 추가
+   - PATCH: 명확화, 오타 수정
+
+### 준수 검토
+
+- **분기별 리뷰**: 헌법 준수 여부 확인
+- **위반 시 조치**: 코드 수정, 문서 업데이트, 재검토
+
+### 문서 동기화
+
+본 헌법과 연관된 문서:
+- ✅ `spec.md`: 기능 명세
+- ✅ `plan.md`: 구현 계획
+- ✅ `tasks.md`: 작업 분해
+- ✅ `docs/물어보새-분석/*.md`: 분석 문서
+
+---
+
+## 📊 성공 지표 (Success Metrics)
+
+본 헌법의 성공은 다음 지표로 측정한다:
+
+| 지표 | 목표 | 측정 방법 |
+|------|------|-----------|
+| **비용** | $50/월 이하 | LLM API 비용 추적 |
+| **쿼리 정확도** | 85% 이상 | 사용자 수정 없이 실행 가능 비율 |
+| **응답 시간** | Text-to-SQL 30초~1분 | 평균 응답 시간 |
+| **검색 정확도** | Top-5 90% 이상 | 수동 평가 |
+| **사용자 만족도** | 80% 이상 | 월간 설문 조사 |
+| **시스템 가용성** | 99% 이상 | Uptime 모니터링 |
+| **테스트 커버리지** | 80% 이상 | pytest coverage |
+
+---
+
+**헌법 종료**
+
+본 헌법은 AI 데이터 분석 어시스턴트 프로젝트의 모든 개발, 운영, 의사결정에 적용된다.

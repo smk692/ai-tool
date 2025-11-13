@@ -1,5 +1,5 @@
 ---
-description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
+description: 사용 가능한 설계 산출물을 기반으로 기능에 대한 실행 가능하고 종속성이 정렬된 tasks.md를 생성합니다.
 ---
 
 ## User Input

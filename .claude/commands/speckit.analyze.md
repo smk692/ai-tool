@@ -1,5 +1,5 @@
 ---
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+description: 작업 생성 후 spec.md, plan.md, tasks.md 전반에 걸쳐 비파괴적 교차 산출물 일관성 및 품질 분석을 수행합니다.
 ---
 
 ## User Input

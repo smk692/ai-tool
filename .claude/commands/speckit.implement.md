@@ -1,5 +1,5 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+description: tasks.md에 정의된 모든 작업을 처리하고 실행하여 구현 계획을 실행합니다.
 ---
 
 ## User Input

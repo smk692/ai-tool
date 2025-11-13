@@ -1,0 +1,33 @@
+# LLM and AI Framework
+anthropic>=0.18.0  # Claude API client (NEW - replacing openai)
+langchain>=0.1.0  # LLM orchestration framework
+langchain-anthropic>=0.1.0  # LangChain integration for Claude (NEW)
+langchain-community>=0.0.20  # Community integrations
+
+# Embeddings and Vector Store
+sentence-transformers>=2.2.0  # Embedding models
+chromadb>=0.4.0  # Vector database
+rank-bm25>=0.2.2  # Keyword search
+
+# Database
+psycopg2-binary>=2.9.0  # PostgreSQL client
+sqlalchemy>=2.0.0  # ORM and database toolkit
+
+# UI
+streamlit>=1.28.0  # Web UI framework
+
+# Utilities
+python-dotenv>=1.0.0  # Environment variable management
+pydantic>=2.0.0  # Data validation
+pyyaml>=6.0  # YAML parsing
+
+# Testing
+pytest>=7.4.0  # Testing framework
+pytest-cov>=4.1.0  # Coverage reporting
+pytest-asyncio>=0.21.0  # Async testing
+httpx>=0.25.0  # HTTP client for testing
+
+# Development
+black>=23.0.0  # Code formatter
+ruff>=0.1.0  # Linter
+pre-commit>=3.5.0  # Git hooks

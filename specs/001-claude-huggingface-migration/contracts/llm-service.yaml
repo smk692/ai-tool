@@ -1,0 +1,447 @@
+openapi: 3.0.3
+info:
+  title: LLM Service API
+  description: Internal API contract for LLM operations (Claude Code integration)
+  version: 2.0.0
+  contact:
+    name: AI Team
+
+servers:
+  - url: http://localhost:8501
+    description: Local development
+  - url: https://ask-bird-internal.company.com
+    description: Production (internal)
+
+paths:
+  /api/v2/llm/configure:
+    post:
+      summary: Configure LLM provider settings
+      description: Update LLM configuration (Claude Code API settings)
+      operationId: configureLLM
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMConfigurationRequest'
+            examples:
+              claude:
+                summary: Claude 3.5 Sonnet configuration
+                value:
+                  provider: anthropic
+                  model_name: claude-3-5-sonnet-20241022
+                  temperature: 0.0
+                  max_tokens: 4096
+                  timeout: 60
+                  max_retries: 3
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMConfigurationResponse'
+        '400':
+          description: Invalid configuration parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v2/llm/query:
+    post:
+      summary: Submit a query to the AI assistant
+      description: Process user query through appropriate AI chain (Text-to-SQL, Knowledge Discovery, or Assistant)
+      operationId: submitQuery
+      tags:
+        - Query Processing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+            examples:
+              text_to_sql:
+                summary: Text-to-SQL query (Korean)
+                value:
+                  user_id: U12345ABC
+                  query_text: "지난달 신규 가입자 수는?"
+                  query_language: ko
+                  session_id: 550e8400-e29b-41d4-a716-446655440000
+              knowledge_discovery:
+                summary: Knowledge Discovery query
+                value:
+                  user_id: U67890DEF
+                  query_text: "회원가입 프로세스가 어떻게 되나요?"
+                  query_language: ko
+      responses:
+        '200':
+          description: Query processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+              examples:
+                text_to_sql_success:
+                  summary: SQL query generated
+                  value:
+                    response_id: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+                    query_id: 550e8400-e29b-41d4-a716-446655440000
+                    response_type: sql_query
+                    response_text: "다음 SQL 쿼리를 실행하세요:\nSELECT COUNT(*) FROM users WHERE created_at >= '2024-12-01' AND created_at < '2025-01-01'"
+                    sql_query: "SELECT COUNT(*) FROM users WHERE created_at >= '2024-12-01' AND created_at < '2025-01-01'"
+                    confidence_score: 0.92
+                    execution_time: 42.5
+                    token_usage:
+                      input_tokens: 6500
+                      output_tokens: 150
+                knowledge_success:
+                  summary: Document answer retrieved
+                  value:
+                    response_id: 8d0e7680-8536-51ef-b825-f18gd2g01bf8
+                    query_id: 660f9511-f30c-52e5-b827-557766551111
+                    response_type: document_answer
+                    response_text: "회원가입 프로세스는 다음과 같습니다: 1. 이메일 입력 2. 인증번호 확인 3. 비밀번호 설정..."
+                    source_documents:
+                      - doc_id: doc123
+                        title: "회원가입 가이드"
+                        relevance_score: 0.95
+                      - doc_id: doc456
+                        title: "사용자 매뉴얼"
+                        relevance_score: 0.89
+                    confidence_score: 0.90
+                    execution_time: 2.1
+                    token_usage:
+                      input_tokens: 2000
+                      output_tokens: 500
+        '400':
+          description: Invalid query format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error (LLM API failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: Query timeout (exceeded SLA)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v2/budget/status:
+    get:
+      summary: Get current budget status
+      description: Retrieve budget utilization and cost tracking metrics
+      operationId: getBudgetStatus
+      tags:
+        - Budget Monitoring
+      responses:
+        '200':
+          description: Budget status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetStatusResponse'
+              examples:
+                normal:
+                  summary: Normal budget usage
+                  value:
+                    current_month: "2025-01"
+                    subscription_cost: 100.00
+                    budget_limit: 100.00
+                    budget_utilization: 100.0
+                    daily_query_count: 210
+                    monthly_query_count: 6300
+                    projected_monthly_cost: 100.00
+                    alert_status: ok
+                    alert_thresholds:
+                      - 80.0
+                      - 90.0
+                      - 100.0
+
+components:
+  schemas:
+    LLMConfigurationRequest:
+      type: object
+      required:
+        - provider
+        - model_name
+      properties:
+        provider:
+          type: string
+          enum: [anthropic, openai]
+          description: LLM provider identifier
+        model_name:
+          type: string
+          description: Specific model version
+          example: claude-3-5-sonnet-20241022
+        temperature:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+          description: Sampling temperature (0 = deterministic)
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 200000
+          default: 4096
+          description: Maximum response tokens
+        timeout:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 60
+          description: Request timeout (seconds)
+        max_retries:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 3
+          description: Automatic retry attempts
+
+    LLMConfigurationResponse:
+      type: object
+      properties:
+        provider:
+          type: string
+        model_name:
+          type: string
+        temperature:
+          type: number
+          format: float
+        max_tokens:
+          type: integer
+        timeout:
+          type: integer
+        max_retries:
+          type: integer
+        status:
+          type: string
+          enum: [active, error]
+        validated_at:
+          type: string
+          format: date-time
+
+    QueryRequest:
+      type: object
+      required:
+        - user_id
+        - query_text
+        - query_language
+      properties:
+        user_id:
+          type: string
+          description: User identifier (Slack user ID)
+          example: U12345ABC
+        query_text:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Natural language query
+          example: "지난달 신규 가입자 수는?"
+        query_language:
+          type: string
+          pattern: "^[a-z]{2}$"
+          default: ko
+          description: Query language (ISO 639-1 code)
+        session_id:
+          type: string
+          format: uuid
+          description: Conversation session ID (for multi-turn)
+        metadata:
+          type: object
+          description: Additional context (channel, thread, etc.)
+          additionalProperties: true
+
+    QueryResponse:
+      type: object
+      required:
+        - response_id
+        - query_id
+        - response_type
+        - response_text
+        - confidence_score
+        - execution_time
+        - token_usage
+        - timestamp
+      properties:
+        response_id:
+          type: string
+          format: uuid
+          description: Unique response identifier
+        query_id:
+          type: string
+          format: uuid
+          description: Reference to original query
+        response_type:
+          type: string
+          enum: [sql_query, document_answer, assistant_message, error]
+          description: Response classification
+        response_text:
+          type: string
+          description: Generated response content
+        sql_query:
+          type: string
+          description: Generated SQL (if type=sql_query)
+          nullable: true
+        source_documents:
+          type: array
+          items:
+            type: object
+            properties:
+              doc_id:
+                type: string
+              title:
+                type: string
+              relevance_score:
+                type: number
+                format: float
+          description: Retrieved documents (if type=document_answer)
+          nullable: true
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Response confidence
+        execution_time:
+          type: number
+          format: float
+          description: Response generation time (seconds)
+        token_usage:
+          type: object
+          properties:
+            input_tokens:
+              type: integer
+            output_tokens:
+              type: integer
+          description: LLM API token usage
+        timestamp:
+          type: string
+          format: date-time
+          description: Response generation timestamp
+        error_message:
+          type: string
+          description: Error details (if type=error)
+          nullable: true
+
+    BudgetStatusResponse:
+      type: object
+      required:
+        - current_month
+        - subscription_cost
+        - budget_limit
+        - budget_utilization
+        - daily_query_count
+        - monthly_query_count
+        - projected_monthly_cost
+        - alert_status
+      properties:
+        current_month:
+          type: string
+          pattern: "^\\d{4}-\\d{2}$"
+          description: Tracking period (YYYY-MM)
+          example: "2025-01"
+        subscription_cost:
+          type: number
+          format: decimal
+          description: Monthly subscription fee (USD)
+          example: 100.00
+        budget_limit:
+          type: number
+          format: decimal
+          description: Monthly budget ceiling (USD)
+          example: 100.00
+        budget_utilization:
+          type: number
+          format: float
+          description: Budget usage percentage
+          example: 100.0
+        daily_query_count:
+          type: integer
+          description: Queries today
+          example: 210
+        monthly_query_count:
+          type: integer
+          description: Queries this month
+          example: 6300
+        projected_monthly_cost:
+          type: number
+          format: decimal
+          description: Projected end-of-month cost
+          example: 100.00
+        alert_status:
+          type: string
+          enum: [ok, warning, critical, over_budget]
+          description: Current budget status
+        alert_thresholds:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Alert trigger percentages
+          example: [80.0, 90.0, 100.0]
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - error_message
+        - timestamp
+      properties:
+        error_code:
+          type: string
+          description: Error classification code
+          example: INVALID_QUERY_FORMAT
+        error_message:
+          type: string
+          description: Human-readable error description
+          example: "Query text cannot be empty"
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+          nullable: true
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Internal service API key
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Configuration
+    description: LLM provider configuration management
+  - name: Query Processing
+    description: AI query submission and response handling
+  - name: Budget Monitoring
+    description: Cost tracking and budget alerts

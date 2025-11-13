@@ -1,5 +1,5 @@
 ---
-description: Create or update the feature specification from a natural language feature description.
+description: 자연어 기능 설명에서 기능 명세서를 생성하거나 업데이트합니다.
 ---
 
 ## User Input
