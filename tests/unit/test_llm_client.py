@@ -27,7 +27,7 @@ class TestLLMClient:
         custom_config = LLMConfiguration(
             provider=LLMProvider.ANTHROPIC,
             model_name="claude-3-opus-20240229",
-            api_key="test_key",
+            api_key="sk-ant-test_api_key_12345",
             temperature=0.5,
             max_tokens=2000,
         )
@@ -57,8 +57,17 @@ class TestLLMClient:
     def test_authentication_error(self, mock_chat_anthropic):
         """Test authentication error handling."""
         from anthropic import AuthenticationError as AnthropicAuthError
+        from httpx import Response, Request
 
-        mock_chat_anthropic.side_effect = AnthropicAuthError("Invalid API key")
+        # Create mock request and response for Anthropic exception
+        mock_request = Request("POST", "https://api.anthropic.com/v1/messages")
+        mock_response = Response(status_code=401, request=mock_request)
+
+        mock_chat_anthropic.side_effect = AnthropicAuthError(
+            "Invalid API key",
+            response=mock_response,
+            body={"error": {"message": "Invalid API key"}}
+        )
 
         client = LLMClient()
 
@@ -113,13 +122,21 @@ class TestLLMClient:
     def test_invoke_timeout_error(self):
         """Test timeout error handling."""
         from anthropic import APIError
+        from httpx import Response, Request
 
         with patch.object(LLMClient, "client") as mock_client:
-            mock_client.invoke.side_effect = APIError("Request timeout")
+            # Create mock request for APIError
+            mock_request = Request("POST", "https://api.anthropic.com/v1/messages")
+
+            mock_client.invoke.side_effect = APIError(
+                "Request timeout",
+                request=mock_request,
+                body={"error": {"message": "Request timeout"}}
+            )
 
             # Set short timeout
             config = LLMConfiguration(
-                api_key="test_key",
+                api_key="sk-ant-test_api_key_12345",
                 timeout=1,
             )
             client = LLMClient(config=config)
