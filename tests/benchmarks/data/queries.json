@@ -1,0 +1,702 @@
+[
+  {
+    "query_id": 1,
+    "query": "PostgreSQL에서 트랜잭션 격리 수준이란?",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_001", "doc_003"]
+  },
+  {
+    "query_id": 2,
+    "query": "B-Tree 인덱스의 특징은?",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_002", "doc_007"]
+  },
+  {
+    "query_id": 3,
+    "query": "MVCC가 무엇인가요?",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_004"]
+  },
+  {
+    "query_id": 4,
+    "query": "데이터베이스 정규화 과정 설명",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_005", "doc_018"]
+  },
+  {
+    "query_id": 5,
+    "query": "쿼리 실행 계획 확인 방법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_006"]
+  },
+  {
+    "query_id": 6,
+    "query": "인덱스 스캔과 Sequential Scan 비교",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_007", "doc_020"]
+  },
+  {
+    "query_id": 7,
+    "query": "벡터 임베딩이란 무엇인가?",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_008"]
+  },
+  {
+    "query_id": 8,
+    "query": "코사인 유사도 계산 방법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_009"]
+  },
+  {
+    "query_id": 9,
+    "query": "ChromaDB 벡터 검색 알고리즘",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_010"]
+  },
+  {
+    "query_id": 10,
+    "query": "JOIN 연산 종류",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_011"]
+  },
+  {
+    "query_id": 11,
+    "query": "외래 키 제약 조건",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_012"]
+  },
+  {
+    "query_id": 12,
+    "query": "SQL injection 방어 방법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_013"]
+  },
+  {
+    "query_id": 13,
+    "query": "커넥션 풀링의 장점",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_014"]
+  },
+  {
+    "query_id": 14,
+    "query": "테이블 파티셔닝 방식",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_015"]
+  },
+  {
+    "query_id": 15,
+    "query": "Primary key 특징",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_017"]
+  },
+  {
+    "query_id": 16,
+    "query": "ACID 속성 설명",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_001", "doc_019"]
+  },
+  {
+    "query_id": 17,
+    "query": "데이터베이스 복제 구조",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_021"]
+  },
+  {
+    "query_id": 18,
+    "query": "백업 방식 종류",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_022"]
+  },
+  {
+    "query_id": 19,
+    "query": "트리거 동작 원리",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_023"]
+  },
+  {
+    "query_id": 20,
+    "query": "뷰의 장점",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_024"]
+  },
+  {
+    "query_id": 21,
+    "query": "저장 프로시저 활용",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_025"]
+  },
+  {
+    "query_id": 22,
+    "query": "VACUUM 작업 목적",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_026"]
+  },
+  {
+    "query_id": 23,
+    "query": "ANALYZE 명령어 효과",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_027"]
+  },
+  {
+    "query_id": 24,
+    "query": "GiST 인덱스 사용 사례",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_028"]
+  },
+  {
+    "query_id": 25,
+    "query": "GIN 인덱스 최적 사용",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_029"]
+  },
+  {
+    "query_id": 26,
+    "query": "BRIN 인덱스 적용 시나리오",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_030"]
+  },
+  {
+    "query_id": 27,
+    "query": "관계형 데이터베이스 트랜잭션",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_001", "doc_003", "doc_004"]
+  },
+  {
+    "query_id": 28,
+    "query": "데이터베이스 성능 최적화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_002", "doc_006", "doc_007", "doc_014", "doc_026", "doc_027"]
+  },
+  {
+    "query_id": 29,
+    "query": "인덱스 종류와 특징",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_002", "doc_028", "doc_029", "doc_030"]
+  },
+  {
+    "query_id": 30,
+    "query": "데이터 무결성 보장 방법",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_005", "doc_012", "doc_017"]
+  },
+  {
+    "query_id": 31,
+    "query": "데이터베이스 보안",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_013"]
+  },
+  {
+    "query_id": 32,
+    "query": "벡터 검색 기술",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_008", "doc_009", "doc_010"]
+  },
+  {
+    "query_id": 33,
+    "query": "데이터베이스 고가용성",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_021", "doc_022"]
+  },
+  {
+    "query_id": 34,
+    "query": "SQL 프로그래밍",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_023", "doc_025"]
+  },
+  {
+    "query_id": 35,
+    "query": "데이터 조회 최적화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_024"]
+  },
+  {
+    "query_id": 36,
+    "query": "PostgreSQL 유지보수",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_026", "doc_027"]
+  },
+  {
+    "query_id": 37,
+    "query": "전문 검색 인덱스",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_028", "doc_029"]
+  },
+  {
+    "query_id": 38,
+    "query": "대용량 데이터 처리",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_015", "doc_030"]
+  },
+  {
+    "query_id": 39,
+    "query": "데이터베이스 설계 원칙",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_005", "doc_011", "doc_012", "doc_018"]
+  },
+  {
+    "query_id": 40,
+    "query": "쿼리 성능 분석",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_006", "doc_027"]
+  },
+  {
+    "query_id": 41,
+    "query": "격리 수준과 동시성",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_001", "doc_003", "doc_004"]
+  },
+  {
+    "query_id": 42,
+    "query": "인덱스 선택 가이드",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_002", "doc_007", "doc_028", "doc_029", "doc_030"]
+  },
+  {
+    "query_id": 43,
+    "query": "What is database normalization?",
+    "language": "english",
+    "category": "conceptual",
+    "answer_ids": ["doc_018", "doc_005"]
+  },
+  {
+    "query_id": 44,
+    "query": "ACID properties in databases",
+    "language": "english",
+    "category": "conceptual",
+    "answer_ids": ["doc_019", "doc_001"]
+  },
+  {
+    "query_id": 45,
+    "query": "How does indexing improve performance?",
+    "language": "english",
+    "category": "procedural",
+    "answer_ids": ["doc_020", "doc_002", "doc_007"]
+  },
+  {
+    "query_id": 46,
+    "query": "Primary key constraints",
+    "language": "english",
+    "category": "factual",
+    "answer_ids": ["doc_017"]
+  },
+  {
+    "query_id": 47,
+    "query": "SQL database basics",
+    "language": "english",
+    "category": "factual",
+    "answer_ids": ["doc_016"]
+  },
+  {
+    "query_id": 48,
+    "query": "Transaction isolation levels",
+    "language": "english",
+    "category": "factual",
+    "answer_ids": ["doc_001", "doc_003"]
+  },
+  {
+    "query_id": 49,
+    "query": "Database performance optimization",
+    "language": "english",
+    "category": "procedural",
+    "answer_ids": ["doc_020", "doc_014", "doc_006"]
+  },
+  {
+    "query_id": 50,
+    "query": "Relational database concepts",
+    "language": "english",
+    "category": "conceptual",
+    "answer_ids": ["doc_016", "doc_018", "doc_019"]
+  },
+  {
+    "query_id": 51,
+    "query": "PostgreSQL ACID 지원",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_001", "doc_019"]
+  },
+  {
+    "query_id": 52,
+    "query": "인덱스 성능 비교",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_002", "doc_007", "doc_020"]
+  },
+  {
+    "query_id": 53,
+    "query": "동시성 제어 메커니즘",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_003", "doc_004"]
+  },
+  {
+    "query_id": 54,
+    "query": "정규화와 무결성",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_005", "doc_012", "doc_018"]
+  },
+  {
+    "query_id": 55,
+    "query": "쿼리 최적화 기법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_006", "doc_007", "doc_027"]
+  },
+  {
+    "query_id": 56,
+    "query": "의미 검색 구현",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_008", "doc_009", "doc_010"]
+  },
+  {
+    "query_id": 57,
+    "query": "테이블 관계 설정",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_011", "doc_012"]
+  },
+  {
+    "query_id": 58,
+    "query": "데이터베이스 보안 위협",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_013"]
+  },
+  {
+    "query_id": 59,
+    "query": "연결 관리 최적화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_014"]
+  },
+  {
+    "query_id": 60,
+    "query": "대규모 테이블 관리",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_015", "doc_030"]
+  },
+  {
+    "query_id": 61,
+    "query": "고가용성 아키텍처",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_021", "doc_022"]
+  },
+  {
+    "query_id": 62,
+    "query": "이벤트 기반 처리",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_023"]
+  },
+  {
+    "query_id": 63,
+    "query": "가상 테이블 활용",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_024"]
+  },
+  {
+    "query_id": 64,
+    "query": "비즈니스 로직 캡슐화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_025"]
+  },
+  {
+    "query_id": 65,
+    "query": "공간 회수 작업",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_026"]
+  },
+  {
+    "query_id": 66,
+    "query": "통계 정보 관리",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_027"]
+  },
+  {
+    "query_id": 67,
+    "query": "공간 데이터 인덱싱",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_028"]
+  },
+  {
+    "query_id": 68,
+    "query": "JSONB 검색 최적화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_029"]
+  },
+  {
+    "query_id": 69,
+    "query": "시계열 데이터 처리",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_030"]
+  },
+  {
+    "query_id": 70,
+    "query": "트랜잭션 관리 전략",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_001", "doc_003", "doc_004", "doc_023"]
+  },
+  {
+    "query_id": 71,
+    "query": "인덱스 전략 수립",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_002", "doc_028", "doc_029", "doc_030"]
+  },
+  {
+    "query_id": 72,
+    "query": "데이터 품질 관리",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_005", "doc_012", "doc_017"]
+  },
+  {
+    "query_id": 73,
+    "query": "성능 튜닝 체크리스트",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_006", "doc_014", "doc_026", "doc_027"]
+  },
+  {
+    "query_id": 74,
+    "query": "벡터 데이터베이스 원리",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_008", "doc_009", "doc_010"]
+  },
+  {
+    "query_id": 75,
+    "query": "관계형 모델링 기초",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_011", "doc_012", "doc_017", "doc_018"]
+  },
+  {
+    "query_id": 76,
+    "query": "보안 모범 사례",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_013"]
+  },
+  {
+    "query_id": 77,
+    "query": "확장성 설계",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_015", "doc_021"]
+  },
+  {
+    "query_id": 78,
+    "query": "재해 복구 계획",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_022"]
+  },
+  {
+    "query_id": 79,
+    "query": "자동화 전략",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_023", "doc_025"]
+  },
+  {
+    "query_id": 80,
+    "query": "접근 제어 구현",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_024"]
+  },
+  {
+    "query_id": 81,
+    "query": "Database transaction management",
+    "language": "english",
+    "category": "conceptual",
+    "answer_ids": ["doc_001", "doc_019"]
+  },
+  {
+    "query_id": 82,
+    "query": "Index types and usage",
+    "language": "english",
+    "category": "factual",
+    "answer_ids": ["doc_020", "doc_002"]
+  },
+  {
+    "query_id": 83,
+    "query": "Data integrity constraints",
+    "language": "english",
+    "category": "factual",
+    "answer_ids": ["doc_017", "doc_012"]
+  },
+  {
+    "query_id": 84,
+    "query": "Query optimization techniques",
+    "language": "english",
+    "category": "procedural",
+    "answer_ids": ["doc_020", "doc_006"]
+  },
+  {
+    "query_id": 85,
+    "query": "Relational database design",
+    "language": "english",
+    "category": "conceptual",
+    "answer_ids": ["doc_016", "doc_018"]
+  },
+  {
+    "query_id": 86,
+    "query": "격리 수준 선택 기준",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_001", "doc_003"]
+  },
+  {
+    "query_id": 87,
+    "query": "MVCC 작동 원리",
+    "language": "korean",
+    "category": "conceptual",
+    "answer_ids": ["doc_004"]
+  },
+  {
+    "query_id": 88,
+    "query": "정규화 단계별 과정",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_005", "doc_018"]
+  },
+  {
+    "query_id": 89,
+    "query": "EXPLAIN 결과 해석",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_006"]
+  },
+  {
+    "query_id": 90,
+    "query": "임베딩 벡터 생성",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_008"]
+  },
+  {
+    "query_id": 91,
+    "query": "유사도 측정 방법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_009"]
+  },
+  {
+    "query_id": 92,
+    "query": "HNSW 알고리즘 특징",
+    "language": "korean",
+    "category": "factual",
+    "answer_ids": ["doc_010"]
+  },
+  {
+    "query_id": 93,
+    "query": "JOIN 성능 최적화",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_011"]
+  },
+  {
+    "query_id": 94,
+    "query": "참조 무결성 관리",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_012"]
+  },
+  {
+    "query_id": 95,
+    "query": "Prepared Statement 사용법",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_013"]
+  },
+  {
+    "query_id": 96,
+    "query": "커넥션 풀 설정",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_014"]
+  },
+  {
+    "query_id": 97,
+    "query": "파티션 키 선택",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_015"]
+  },
+  {
+    "query_id": 98,
+    "query": "복제 지연 관리",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_021"]
+  },
+  {
+    "query_id": 99,
+    "query": "백업 주기 설정",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_022"]
+  },
+  {
+    "query_id": 100,
+    "query": "VACUUM 실행 시점",
+    "language": "korean",
+    "category": "procedural",
+    "answer_ids": ["doc_026"]
+  }
+]

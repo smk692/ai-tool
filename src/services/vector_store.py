@@ -1,5 +1,6 @@
 """ChromaDB vector store operations for document retrieval."""
 
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -7,6 +8,7 @@ import chromadb
 from chromadb.config import Settings as ChromaSettings
 
 from config.settings import settings
+from src.services.embeddings import HuggingFaceEmbedding
 from src.utils.errors import VectorStoreError
 from src.utils.logging import logger
 
@@ -16,20 +18,24 @@ class VectorStore:
     ChromaDB vector store client for document embedding and retrieval.
 
     Handles document indexing, query embedding, and semantic search.
+    Integrates with HuggingFaceEmbedding for custom embedding generation.
     """
 
     def __init__(
         self,
+        embedding_service: HuggingFaceEmbedding,
         persist_directory: Optional[str] = None,
         collection_name: Optional[str] = None,
     ):
         """
-        Initialize ChromaDB vector store.
+        Initialize ChromaDB vector store with embedding service.
 
         Args:
+            embedding_service: HuggingFaceEmbedding service for generating embeddings
             persist_directory: Directory for persistent storage
             collection_name: Name of the collection
         """
+        self.embedding_service = embedding_service
         self.persist_directory = Path(
             persist_directory or settings.chroma_persist_directory
         )
@@ -39,16 +45,18 @@ class VectorStore:
         self._client: Optional[chromadb.Client] = None
         self._collection: Optional[chromadb.Collection] = None
 
+        logger.info(
+            f"Initialized VectorStore with collection={self.collection_name}, "
+            f"embedding_dim={self.embedding_service.get_embedding_dimension()}"
+        )
+
     @property
     def client(self) -> chromadb.Client:
         """Get or create ChromaDB client."""
         if self._client is None:
             try:
-                self._client = chromadb.Client(
-                    ChromaSettings(
-                        persist_directory=str(self.persist_directory),
-                        anonymized_telemetry=False,
-                    )
+                self._client = chromadb.PersistentClient(
+                    path=str(self.persist_directory)
                 )
                 logger.info(
                     f"ChromaDB client initialized: {self.persist_directory}"
@@ -82,23 +90,35 @@ class VectorStore:
     def add_documents(
         self,
         documents: List[str],
-        metadatas: List[Dict[str, Any]],
-        ids: List[str],
+        metadatas: Optional[List[Dict[str, Any]]] = None,
+        ids: Optional[List[str]] = None,
         embeddings: Optional[List[List[float]]] = None,
-    ) -> None:
+    ) -> Dict[str, Any]:
         """
         Add documents to the vector store.
 
         Args:
             documents: List of document texts
-            metadatas: List of metadata dictionaries
-            ids: List of document IDs
-            embeddings: Optional pre-computed embeddings (if None, will be computed)
+            metadatas: Optional list of metadata dictionaries
+            ids: Optional list of document IDs (auto-generated if None)
+            embeddings: Optional pre-computed embeddings (auto-generated if None)
+
+        Returns:
+            Dict with success status, count, and IDs
 
         Raises:
             VectorStoreError: If document addition fails
         """
-        if len(documents) != len(metadatas) != len(ids):
+        # Generate IDs if not provided
+        if ids is None:
+            ids = [str(uuid.uuid4()) for _ in documents]
+
+        # Generate default metadatas if not provided
+        if metadatas is None:
+            metadatas = [{"source": "unknown"} for _ in documents]
+
+        # Validate lengths
+        if not (len(documents) == len(metadatas) == len(ids)):
             raise VectorStoreError(
                 message="Mismatched lengths",
                 details={
@@ -109,21 +129,26 @@ class VectorStore:
             )
 
         try:
-            if embeddings:
-                self.collection.add(
-                    documents=documents,
-                    metadatas=metadatas,
-                    ids=ids,
-                    embeddings=embeddings,
-                )
-            else:
-                # ChromaDB will compute embeddings using default model
-                self.collection.add(
-                    documents=documents,
-                    metadatas=metadatas,
-                    ids=ids,
-                )
-            logger.info(f"Added {len(documents)} documents to vector store")
+            # Generate embeddings using HuggingFaceEmbedding service if not provided
+            if embeddings is None:
+                logger.info(f"Generating embeddings for {len(documents)} documents")
+                embeddings = self.embedding_service.embed_texts(documents)
+
+            # Add to ChromaDB
+            self.collection.add(
+                documents=documents,
+                metadatas=metadatas,
+                ids=ids,
+                embeddings=embeddings,
+            )
+            logger.info(f"Added {len(documents)} documents to collection")
+
+            return {
+                "success": True,
+                "count": len(documents),
+                "ids": ids
+            }
+
         except Exception as e:
             logger.error(f"Failed to add documents: {e}")
             raise VectorStoreError(
@@ -133,35 +158,46 @@ class VectorStore:
 
     def query(
         self,
-        query_texts: List[str],
-        n_results: int = 5,
-        where: Optional[Dict[str, Any]] = None,
+        query_text: str,
+        top_k: int = 5,
+        filter: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Query the vector store for similar documents.
 
         Args:
-            query_texts: List of query texts
-            n_results: Number of results to return per query
-            where: Optional metadata filter
+            query_text: Single query text
+            top_k: Number of results to return
+            filter: Optional metadata filter
 
         Returns:
-            Query results with documents, distances, and metadata
+            Dict with documents, metadatas, distances, and ids
 
         Raises:
             VectorStoreError: If query fails
         """
         try:
+            # Generate query embedding using HuggingFaceEmbedding service
+            logger.debug(f"Generating embedding for query: {query_text[:50]}...")
+            query_embedding = self.embedding_service.embed_text(query_text)
+
+            # ChromaDB search
             results = self.collection.query(
-                query_texts=query_texts,
-                n_results=n_results,
-                where=where,
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                where=filter,
             )
-            logger.info(
-                f"Vector query executed: {len(query_texts)} queries, "
-                f"{n_results} results each"
-            )
-            return results
+
+            logger.info(f"Query returned {len(results['documents'][0])} results")
+
+            # Flatten results since we only have one query
+            return {
+                "documents": results["documents"][0],
+                "metadatas": results["metadatas"][0],
+                "distances": results["distances"][0],
+                "ids": results["ids"][0]
+            }
+
         except Exception as e:
             logger.error(f"Vector query failed: {e}")
             raise VectorStoreError(

@@ -1,0 +1,182 @@
+[
+  {
+    "id": "doc_001",
+    "text": "PostgreSQL은 ACID 속성을 완벽하게 지원하는 관계형 데이터베이스입니다. 트랜잭션 격리 수준은 Read Uncommitted, Read Committed, Repeatable Read, Serializable 4가지가 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_002",
+    "text": "B-Tree 인덱스는 PostgreSQL의 기본 인덱스 타입입니다. 범위 검색과 정렬에 최적화되어 있으며, 대부분의 쿼리에서 효율적입니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_003",
+    "text": "트랜잭션 격리 수준(Transaction Isolation Level)은 동시에 실행되는 트랜잭션 간의 데이터 가시성을 제어합니다. 격리 수준이 높을수록 데이터 일관성이 보장되지만 동시성은 떨어집니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_004",
+    "text": "MVCC(Multi-Version Concurrency Control)는 PostgreSQL의 핵심 기능으로, 읽기 작업이 쓰기 작업을 차단하지 않도록 합니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_005",
+    "text": "데이터베이스 정규화는 데이터 중복을 제거하고 무결성을 향상시키는 과정입니다. 1NF, 2NF, 3NF, BCNF 등의 단계가 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_006",
+    "text": "쿼리 실행 계획(Query Execution Plan)은 데이터베이스가 쿼리를 어떻게 실행할지 보여주는 정보입니다. EXPLAIN 명령으로 확인할 수 있습니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_007",
+    "text": "인덱스 스캔(Index Scan)은 인덱스를 사용하여 데이터를 검색하는 방법입니다. Sequential Scan보다 빠르지만 모든 경우에 효율적인 것은 아닙니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_008",
+    "text": "벡터 임베딩은 텍스트를 고차원 벡터 공간의 점으로 표현하는 기술입니다. 의미적으로 유사한 텍스트는 가까운 위치에 배치됩니다.",
+    "category": "ml",
+    "language": "korean"
+  },
+  {
+    "id": "doc_009",
+    "text": "코사인 유사도(Cosine Similarity)는 두 벡터 사이의 각도를 측정하여 유사도를 계산합니다. -1에서 1 사이의 값을 가지며, 1에 가까울수록 유사합니다.",
+    "category": "ml",
+    "language": "korean"
+  },
+  {
+    "id": "doc_010",
+    "text": "ChromaDB는 벡터 데이터베이스로서 임베딩 기반 검색을 지원합니다. HNSW 알고리즘을 사용하여 빠른 근사 최근접 이웃 검색을 수행합니다.",
+    "category": "ml",
+    "language": "korean"
+  },
+  {
+    "id": "doc_011",
+    "text": "JOIN 연산은 여러 테이블의 데이터를 결합하는 방법입니다. INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN 등이 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_012",
+    "text": "외래 키(Foreign Key)는 테이블 간의 참조 무결성을 보장하는 제약 조건입니다. 자식 테이블의 값이 부모 테이블에 존재해야 합니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_013",
+    "text": "SQL injection은 악의적인 SQL 코드를 삽입하여 데이터베이스를 공격하는 기법입니다. Prepared Statement를 사용하여 방어할 수 있습니다.",
+    "category": "security",
+    "language": "korean"
+  },
+  {
+    "id": "doc_014",
+    "text": "커넥션 풀링(Connection Pooling)은 데이터베이스 연결을 재사용하여 성능을 향상시키는 기법입니다. pgBouncer, PgPool 등의 도구를 사용할 수 있습니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_015",
+    "text": "파티셔닝(Partitioning)은 대용량 테이블을 작은 단위로 나누는 기법입니다. Range, List, Hash 파티셔닝 방식이 있습니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_016",
+    "text": "Database is a structured collection of data stored and accessed electronically. SQL is the standard language for managing relational databases.",
+    "category": "database",
+    "language": "english"
+  },
+  {
+    "id": "doc_017",
+    "text": "Primary key uniquely identifies each record in a table. It must contain unique values and cannot contain NULL values.",
+    "category": "database",
+    "language": "english"
+  },
+  {
+    "id": "doc_018",
+    "text": "Normalization is the process of organizing data to minimize redundancy. It involves dividing tables into smaller tables and defining relationships.",
+    "category": "database",
+    "language": "english"
+  },
+  {
+    "id": "doc_019",
+    "text": "ACID properties ensure reliable database transactions: Atomicity, Consistency, Isolation, and Durability.",
+    "category": "database",
+    "language": "english"
+  },
+  {
+    "id": "doc_020",
+    "text": "Indexing improves query performance by creating data structures that allow faster data retrieval. However, it requires additional storage space.",
+    "category": "performance",
+    "language": "english"
+  },
+  {
+    "id": "doc_021",
+    "text": "데이터베이스 복제(Replication)는 데이터를 여러 서버에 복사하여 가용성과 성능을 향상시킵니다. Master-Slave, Master-Master 구조가 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_022",
+    "text": "백업과 복구는 데이터 손실을 방지하기 위한 필수 작업입니다. 전체 백업, 증분 백업, 차등 백업 방식이 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_023",
+    "text": "트리거(Trigger)는 특정 이벤트 발생 시 자동으로 실행되는 저장 프로시저입니다. INSERT, UPDATE, DELETE 작업에 반응할 수 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_024",
+    "text": "뷰(View)는 하나 이상의 테이블에서 파생된 가상 테이블입니다. 복잡한 쿼리를 단순화하고 보안을 강화할 수 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_025",
+    "text": "저장 프로시저(Stored Procedure)는 데이터베이스에 저장된 프로그램입니다. 복잡한 비즈니스 로직을 캡슐화하고 재사용할 수 있습니다.",
+    "category": "database",
+    "language": "korean"
+  },
+  {
+    "id": "doc_026",
+    "text": "VACUUM은 PostgreSQL의 공간 회수 작업입니다. 삭제된 행이 차지하던 공간을 재사용 가능하도록 만듭니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_027",
+    "text": "ANALYZE는 테이블의 통계 정보를 수집하여 쿼리 최적화를 돕습니다. 정기적으로 실행하면 쿼리 성능이 향상됩니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_028",
+    "text": "GiST 인덱스는 다양한 데이터 타입을 지원하는 일반화된 검색 트리입니다. 공간 데이터, 전문 검색 등에 사용됩니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_029",
+    "text": "GIN 인덱스는 복합 값을 효율적으로 검색하는 역 인덱스입니다. 배열, JSONB, 전문 검색에 최적화되어 있습니다.",
+    "category": "performance",
+    "language": "korean"
+  },
+  {
+    "id": "doc_030",
+    "text": "BRIN 인덱스는 블록 범위 인덱스로, 대용량 테이블에서 메모리 효율적인 검색을 제공합니다. 시계열 데이터에 적합합니다.",
+    "category": "performance",
+    "language": "korean"
+  }
+]
