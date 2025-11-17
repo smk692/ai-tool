@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
-from src.chains.knowledge import KnowledgeDiscoveryChain
+from src.chains.knowledge import KnowledgeChain
 from src.chains.router import RouterChain
 from src.services.llm_client import LLMClient
 from src.services.vector_store import VectorStore
@@ -72,7 +72,7 @@ def mock_vector_store():
 @pytest.fixture
 def knowledge_chain(llm_config, mock_vector_store):
     """Create Knowledge Discovery chain with test configuration."""
-    chain = KnowledgeDiscoveryChain(llm_config=llm_config)
+    chain = KnowledgeChain(llm_config=llm_config)
     chain.vector_store = mock_vector_store  # Inject mock
     return chain
 
