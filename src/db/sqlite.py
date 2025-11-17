@@ -161,42 +161,123 @@ class SQLiteClient:
 
     def get_conversation_history(
         self,
-        session_id: UUID,
+        session_id: str,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """
-        Retrieve conversation history for a session.
+        Retrieve conversation history for a session as conversation pairs.
 
         Args:
             session_id: Conversation session ID
-            limit: Maximum number of messages to retrieve
+            limit: Maximum number of conversation pairs to retrieve
 
         Returns:
-            List of messages (oldest first)
+            List of conversation dicts with user_message and assistant_message keys
         """
         try:
             cursor = self.connection.cursor()
+            # Get messages ordered by timestamp (oldest first)
             cursor.execute(
                 """
-                SELECT message_id, role, content, timestamp
+                SELECT role, content, timestamp
                 FROM messages
                 WHERE session_id = ?
-                ORDER BY timestamp DESC
+                ORDER BY timestamp ASC
                 LIMIT ?
                 """,
-                (str(session_id), limit),
+                (session_id, limit * 2),  # Get more messages to ensure pairs
             )
             rows = cursor.fetchall()
-            messages = [dict(row) for row in reversed(rows)]  # Oldest first
+
+            # Group messages into conversation pairs
+            conversations = []
+            current_conversation = {}
+
+            for row in rows:
+                role = row["role"]
+                content = row["content"]
+
+                if role == "user":
+                    # Start a new conversation pair
+                    if current_conversation:
+                        conversations.append(current_conversation)
+                    current_conversation = {"user_message": content}
+                elif role == "assistant" and current_conversation:
+                    # Complete the current pair
+                    current_conversation["assistant_message"] = content
+                    conversations.append(current_conversation)
+                    current_conversation = {}
+
+            # Add any incomplete conversation
+            if current_conversation:
+                conversations.append(current_conversation)
+
             logger.info(
-                f"Retrieved {len(messages)} messages for session {session_id}"
+                f"Retrieved {len(conversations)} conversation pairs for session {session_id}"
             )
-            return messages
+            return conversations[-limit:] if len(conversations) > limit else conversations
+
         except sqlite3.Error as e:
             logger.error(f"Failed to retrieve conversation history: {e}")
             raise DatabaseError(
                 message="Failed to retrieve conversation history",
-                details={"session_id": str(session_id), "error": str(e)},
+                details={"session_id": session_id, "error": str(e)},
+            )
+
+    def save_conversation(
+        self,
+        session_id: str,
+        user_message: str,
+        assistant_message: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Save a user-assistant conversation pair.
+
+        Args:
+            session_id: Conversation session ID
+            user_message: User's message
+            assistant_message: Assistant's response
+            metadata: Optional metadata (stored but not used currently)
+        """
+        session_uuid = UUID(session_id)
+
+        # Add user message
+        self.add_message(
+            session_id=session_uuid,
+            role="user",
+            content=user_message,
+        )
+
+        # Add assistant message
+        self.add_message(
+            session_id=session_uuid,
+            role="assistant",
+            content=assistant_message,
+        )
+
+        logger.info(f"Conversation saved for session: {session_id}")
+
+    def clear_session(self, session_id: str) -> None:
+        """
+        Clear all messages for a session.
+
+        Args:
+            session_id: Conversation session ID to clear
+        """
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(
+                "DELETE FROM messages WHERE session_id = ?",
+                (session_id,),
+            )
+            self.connection.commit()
+            logger.info(f"Cleared messages for session: {session_id}")
+        except sqlite3.Error as e:
+            logger.error(f"Failed to clear session: {e}")
+            raise DatabaseError(
+                message="Failed to clear session",
+                details={"session_id": session_id, "error": str(e)},
             )
 
     def close(self) -> None:

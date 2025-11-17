@@ -19,7 +19,7 @@ class AIAssistantError(Exception):
 
 
 class LLMAPIError(AIAssistantError):
-    """Error from LLM API (Claude, OpenAI)."""
+    """Error from LLM API (Claude)."""
 
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(

@@ -71,7 +71,7 @@ class TestTextToSQLChain:
         mock_llm_client.invoke.return_value = {
             "content": "```sql\nSELECT COUNT(*) FROM users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month');\n```",
             "execution_time": 1.5,
-            "token_usage": Mock(input_tokens=100, output_tokens=50, total_tokens=150),
+            "token_usage": {"input_tokens": 100, "output_tokens": 50, "total_tokens": 150},
         }
 
         result = text_to_sql_chain.generate_sql(sample_query_request)

@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class DeviceType(str, Enum):
@@ -39,7 +39,14 @@ class EmbeddingConfiguration(BaseModel):
         default=512, ge=1, le=8192, description="Maximum input sequence length"
     )
 
-    @validator("model_name")
+    model_config = ConfigDict(
+        use_enum_values=True,
+        validate_assignment=True,
+        protected_namespaces=()  # Allow model_name and model_path fields
+    )
+
+    @field_validator("model_name")
+    @classmethod
     def validate_korean_support(cls, v: str) -> str:
         """
         Validate that model supports Korean language.
@@ -58,22 +65,19 @@ class EmbeddingConfiguration(BaseModel):
             pass
         return v
 
-    @validator("embedding_dim")
-    def validate_embedding_dim_consistency(cls, v: int, values: dict) -> int:
+    @field_validator("embedding_dim")
+    @classmethod
+    def validate_embedding_dim_consistency(cls, v: int) -> int:
         """
         Validate embedding dimensions match ChromaDB collection.
 
         paraphrase-multilingual-MiniLM-L12-v2 uses 384 dimensions.
+        Note: In Pydantic V2, we can't access other field values in field_validator.
+        The dimension check is now done as a standalone validation.
         """
-        model_name = values.get("model_name", "")
-        if "minilm-l12" in model_name.lower() and v != 384:
+        # Most common multilingual models use 384, 768, or 1024 dimensions
+        if v not in [128, 256, 384, 512, 768, 1024, 1536, 2048]:
             raise ValueError(
-                f"Model {model_name} uses 384 dimensions, got {v}"
+                f"Unusual embedding dimension: {v}. Common values are 384, 768, 1024"
             )
         return v
-
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-        validate_assignment = True

@@ -107,7 +107,7 @@ class MultiTurnChain:
                     metadata={
                         "query_id": str(query_request.query_id),
                         "response_id": str(response.response_id),
-                        "token_usage": result["token_usage"].model_dump(),
+                        "token_usage": result["token_usage"],
                         "confidence_score": float(confidence_score),
                     },
                 )
@@ -116,7 +116,7 @@ class MultiTurnChain:
                 # Continue even if save fails
 
         logger.info(
-            f"Conversation response generated: {result['token_usage'].total_tokens} tokens, "
+            f"Conversation response generated: {result['token_usage']['total_tokens']} tokens, "
             f"confidence: {confidence_score}"
         )
 
@@ -191,7 +191,7 @@ class MultiTurnChain:
             response_text=error_message,
             response_type=ResponseType.ERROR,
             confidence_score=Decimal("0.0"),
-            execution_time=0.0,
+            execution_time=0.01,
             token_usage={"input_tokens": 0, "output_tokens": 0},
             error_message=error_message,
         )

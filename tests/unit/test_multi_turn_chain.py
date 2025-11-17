@@ -70,7 +70,7 @@ class TestMultiTurnChain:
         mock_llm_client.invoke.return_value = {
             "content": "안녕하세요! 무엇을 도와드릴까요?",
             "execution_time": 0.8,
-            "token_usage": Mock(input_tokens=10, output_tokens=15, total_tokens=25),
+            "token_usage": {"input_tokens": 10, "output_tokens": 15, "total_tokens": 25},
         }
 
         result = multi_turn_chain.chat(sample_query_request)
@@ -111,7 +111,7 @@ class TestMultiTurnChain:
         mock_llm_client.invoke.return_value = {
             "content": "주문 번호를 알려주시겠어요?",
             "execution_time": 1.0,
-            "token_usage": Mock(input_tokens=50, output_tokens=20, total_tokens=70),
+            "token_usage": {"input_tokens": 50, "output_tokens": 20, "total_tokens": 70},
         }
 
         # Update query text to follow conversation
@@ -144,7 +144,7 @@ class TestMultiTurnChain:
         mock_llm_client.invoke.return_value = {
             "content": "안녕하세요!",
             "execution_time": 0.5,
-            "token_usage": Mock(input_tokens=5, output_tokens=5, total_tokens=10),
+            "token_usage": {"input_tokens": 5, "output_tokens": 5, "total_tokens": 10},
         }
 
         result = multi_turn_chain.chat(query_request)
@@ -171,7 +171,7 @@ class TestMultiTurnChain:
         mock_llm_client.invoke.return_value = {
             "content": "안녕하세요!",
             "execution_time": 0.5,
-            "token_usage": Mock(input_tokens=5, output_tokens=5, total_tokens=10),
+            "token_usage": {"input_tokens": 5, "output_tokens": 5, "total_tokens": 10},
         }
 
         # Should not raise error, continue without history
@@ -198,7 +198,7 @@ class TestMultiTurnChain:
         mock_llm_client.invoke.return_value = {
             "content": "안녕하세요!",
             "execution_time": 0.5,
-            "token_usage": Mock(input_tokens=5, output_tokens=5, total_tokens=10),
+            "token_usage": {"input_tokens": 5, "output_tokens": 5, "total_tokens": 10},
         }
 
         # Should not raise error, continue anyway
@@ -271,7 +271,8 @@ class TestMultiTurnChain:
 
         confidence = multi_turn_chain._calculate_confidence(response)
 
-        assert confidence == Decimal("0.8")  # Base confidence
+        # Response is <50 chars, so confidence is reduced by 0.1
+        assert confidence == Decimal("0.7")
 
     def test_calculate_confidence_short_response(self, multi_turn_chain):
         """Test confidence calculation for short response."""
@@ -315,7 +316,7 @@ class TestMultiTurnChain:
         result = multi_turn_chain.clear_session(session_id)
 
         assert result is True
-        assert mock_memory.clear_session.called_with(session_id)
+        mock_memory.clear_session.assert_called_with(session_id)
 
     def test_clear_session_error(
         self,

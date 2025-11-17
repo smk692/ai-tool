@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class LLMProvider(str, Enum):
@@ -40,23 +40,25 @@ class LLMConfiguration(BaseModel):
     )
     streaming: bool = Field(default=False, description="Enable streaming responses")
 
-    @validator("api_key")
-    def validate_api_key(cls, v: str, values: dict) -> str:
+    model_config = ConfigDict(
+        use_enum_values=True,
+        validate_assignment=True
+    )
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key(cls, v: str) -> str:
         """Validate API key format for Anthropic Claude."""
-        provider = values.get("provider")
-        if provider == LLMProvider.ANTHROPIC and not v.startswith("sk-ant-"):
+        # Note: In Pydantic V2, we can't access other field values in field_validator
+        # This validation assumes Anthropic provider (which is the only one we support)
+        if not v.startswith("sk-ant-"):
             raise ValueError("Anthropic API key must start with 'sk-ant-'")
         return v
 
-    @validator("temperature")
+    @field_validator("temperature")
+    @classmethod
     def validate_temperature_for_sql(cls, v: float) -> float:
         """Enforce temperature = 0 for deterministic SQL generation."""
         # Note: This is a recommendation, not a hard constraint
         # Actual enforcement happens in chain initialization
         return v
-
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-        validate_assignment = True

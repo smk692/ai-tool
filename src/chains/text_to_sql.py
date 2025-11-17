@@ -197,11 +197,12 @@ SQL: SELECT user_id, SUM(amount) as total_amount FROM orders GROUP BY user_id OR
                 details={"sql": sql_query},
             )
 
-        # Check for dangerous operations
+        # Check for dangerous operations using word boundaries
         dangerous_keywords = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "CREATE"]
         sql_upper = sql_query.upper()
         for keyword in dangerous_keywords:
-            if keyword in sql_upper:
+            # Use word boundary matching to avoid false positives like "CURRENT_DATE" matching "CREATE"
+            if re.search(r'\b' + keyword + r'\b', sql_upper):
                 raise ValidationError(
                     message=f"Dangerous operation detected: {keyword}",
                     details={"sql": sql_query},
@@ -236,7 +237,7 @@ SQL: SELECT user_id, SUM(amount) as total_amount FROM orders GROUP BY user_id OR
             response_text=error_message,
             response_type=ResponseType.ERROR,
             confidence_score=Decimal("0.0"),
-            execution_time=0.0,
+            execution_time=0.01,
             token_usage={"input_tokens": 0, "output_tokens": 0},
             error_message=error_message,
         )

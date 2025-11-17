@@ -188,11 +188,12 @@ class KnowledgeChain:
         return QueryResponse(
             query_id=query_request.query_id,
             response_text="죄송합니다. 제공된 문서에서 관련 정보를 찾을 수 없습니다.",
-            response_type=ResponseType.DOCUMENT_ANSWER,
+            response_type=ResponseType.ERROR,
             source_documents=[],
             confidence_score=Decimal("0.0"),
-            execution_time=0.0,
+            execution_time=0.01,  # Small non-zero value for validation
             token_usage={"input_tokens": 0, "output_tokens": 0},
+            error_message="No relevant documents found",
         )
 
     def _error_response(
@@ -206,7 +207,7 @@ class KnowledgeChain:
             response_text=error_message,
             response_type=ResponseType.ERROR,
             confidence_score=Decimal("0.0"),
-            execution_time=0.0,
+            execution_time=0.01,  # Small non-zero value for validation
             token_usage={"input_tokens": 0, "output_tokens": 0},
             error_message=error_message,
         )

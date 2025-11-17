@@ -5,6 +5,9 @@
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
+**Related Specifications**:
+- **User Story 2 (Embedding Integration)**: See [`specs/002-embedding-validation/`](../002-embedding-validation/) for Hugging Face embedding implementation and validation details
+
 ## Summary
 
 Migrate the LLM integration from OpenAI GPT-4o to Claude Code API (Anthropic) while maintaining the current embedding model (paraphrase-multilingual-MiniLM-L12-v2). This migration eliminates OpenAI dependencies, updates constitutional budget to reflect Claude Code subscription ($100/month), implements cost monitoring for API usage, and ensures Korean language support and response quality meet or exceed current baselines. All documentation will be updated to reflect the new architecture with version 2.0.0 (MAJOR bump).

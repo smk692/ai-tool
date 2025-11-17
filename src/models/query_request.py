@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class QueryType(str, Enum):
@@ -32,26 +32,23 @@ class QueryRequest(BaseModel):
     session_id: Optional[UUID] = Field(default=None, description="Conversation session ID")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional context")
 
-    @validator("query_text")
+    model_config = ConfigDict(
+        use_enum_values=True
+    )
+
+    @field_validator("query_text")
+    @classmethod
     def validate_query_text(cls, v: str) -> str:
         """Validate query text is not empty or whitespace-only."""
         if not v.strip():
             raise ValueError("Query text cannot be empty or whitespace-only")
         return v.strip()
 
-    @validator("query_language")
+    @field_validator("query_language")
+    @classmethod
     def validate_language_code(cls, v: str) -> str:
         """Validate ISO 639-1 language code."""
         supported_languages = ["ko", "en"]
         if v not in supported_languages:
             raise ValueError(f"Unsupported language: {v}. Supported: {supported_languages}")
         return v
-
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-        json_encoders = {
-            UUID: str,
-            datetime: lambda v: v.isoformat(),
-        }

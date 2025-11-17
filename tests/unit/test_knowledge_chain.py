@@ -88,7 +88,7 @@ class TestKnowledgeChain:
         mock_llm_client.invoke.return_value = {
             "content": "회원가입은 이메일 주소 입력으로 시작합니다.",
             "execution_time": 1.2,
-            "token_usage": Mock(input_tokens=200, output_tokens=80, total_tokens=280),
+            "token_usage": {"input_tokens": 200, "output_tokens": 80, "total_tokens": 280},
         }
 
         result = knowledge_chain.answer_question(sample_query_request)
@@ -118,7 +118,7 @@ class TestKnowledgeChain:
         result = knowledge_chain.answer_question(sample_query_request)
 
         # Should return no documents response
-        assert result.response_type == ResponseType.DOCUMENT_ANSWER
+        assert result.response_type == ResponseType.ERROR
         assert len(result.source_documents) == 0
         assert "찾을 수 없습니다" in result.response_text
 
@@ -297,7 +297,7 @@ class TestKnowledgeChain:
         response = knowledge_chain._no_documents_response(sample_query_request)
 
         assert response.query_id == sample_query_request.query_id
-        assert response.response_type == ResponseType.DOCUMENT_ANSWER
+        assert response.response_type == ResponseType.ERROR
         assert len(response.source_documents) == 0
         assert response.confidence_score == Decimal("0.0")
 
