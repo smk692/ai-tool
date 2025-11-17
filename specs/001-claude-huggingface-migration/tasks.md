@@ -85,25 +85,19 @@
 
 ---
 
-## Phase 4: User Story 2 - System Uses High-Quality Embeddings (Priority: P2)
+## Phase 4: User Story 2 - Hugging Face Embedding Integration (Priority: P2)
 
-**Goal**: Maintain high-quality Hugging Face embedding model (paraphrase-multilingual-MiniLM-L12-v2) to ensure document retrieval accuracy meets ≥90% Top-5 target
+**Note**: User Story 2 implementation has been moved to a separate feature specification.
 
-**Independent Test**: Run benchmark test set of 100 Korean queries against knowledge base and measure Top-5 accuracy achieving ≥90%
+**See**: [`specs/002-embedding-validation/tasks.md`](../002-embedding-validation/tasks.md) for complete task breakdown (T041-T049)
 
-### Implementation for User Story 2
+**Summary**:
+- **Tasks**: T041-T049 (9 tasks, 32 hours)
+- **Goal**: Integrate and validate Hugging Face `paraphrase-multilingual-MiniLM-L12-v2` embedding model
+- **Acceptance**: ≥90% Top-5 accuracy, ≤0.5s search latency
+- **Files**: `src/services/embeddings.py`, `src/services/vector_store.py`, benchmark tests
 
-- [ ] T041 [P] [US2] Verify paraphrase-multilingual-MiniLM-L12-v2 model configuration in src/models/embedding.py
-- [ ] T042 [P] [US2] Implement embedding service in src/services/embeddings.py
-- [ ] T043 [US2] Integrate embedding service with ChromaDB in src/services/vector_store.py
-- [ ] T044 [US2] Create document indexing utility in scripts/index_documents.py
-- [ ] T045 [US2] Test Korean language query embedding in tests/unit/test_embeddings.py
-- [ ] T046 [US2] Validate vector search latency ≤0.5 seconds in tests/integration/test_vector_search.py
-- [ ] T047 [US2] Create benchmark test suite for Top-5 accuracy in tests/benchmarks/test_embedding_accuracy.py
-- [ ] T048 [US2] Validate multilingual support (Korean + English) in tests/unit/test_embeddings.py
-- [ ] T049 [US2] Document embedding model specifications in docs/embedding-model.md
-
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - embedding quality validated
+**Checkpoint**: User Stories 1 AND 2 work independently when both phases complete
 
 ---
 
@@ -168,10 +162,10 @@
   - Core LLM migration - highest priority
   - Delivers immediate value: system operates with Claude Code
 
-- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - Independent of US1
-  - Embedding quality validation
-  - Can be tested with existing embedding model while US1 proceeds
-  - May integrate with US1's Knowledge Discovery chain
+- **User Story 2 (P2)**: See [`specs/002-embedding-validation/`](../002-embedding-validation/) for implementation
+  - Embedding integration and validation (T041-T049)
+  - Can proceed in parallel with US1 after Foundational (Phase 2) complete
+  - Independent testing with benchmark accuracy validation
 
 - **User Story 3 (P3)**: Can start after US1 is complete (needs query processing for tracking)
   - Budget monitoring depends on LLM being operational

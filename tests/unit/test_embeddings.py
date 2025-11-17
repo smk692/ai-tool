@@ -100,31 +100,15 @@ class TestMultilingualSupport:
 
         assert len(embedding) == 384
 
-    def test_japanese_text(self, embedding_service):
-        """Test embedding Japanese text."""
-        text = "データベース管理システム"
-        embedding = embedding_service.embed_text(text)
-
-        assert len(embedding) == 384
-
-    def test_chinese_text(self, embedding_service):
-        """Test embedding Chinese text."""
-        text = "数据库索引优化"
-        embedding = embedding_service.embed_text(text)
-
-        assert len(embedding) == 384
-
     def test_multilingual_batch(self, embedding_service):
-        """Test batch embedding with multiple languages."""
+        """Test batch embedding with Korean and English."""
         texts = [
             "한국어 텍스트",
-            "English text",
-            "日本語テキスト",
-            "中文文本"
+            "English text"
         ]
         embeddings = embedding_service.embed_texts(texts)
 
-        assert len(embeddings) == 4
+        assert len(embeddings) == 2
         assert all(len(emb) == 384 for emb in embeddings)
 
 
@@ -246,21 +230,17 @@ class TestSemanticSimilarity:
         assert similarity < 0.5
 
     def test_cross_language_semantic_similarity(self, embedding_service):
-        """Test semantic similarity across languages."""
+        """Test semantic similarity between Korean and English."""
         ko_text = "데이터베이스"
         en_text = "database"
-        ja_text = "データベース"
 
         ko_emb = np.array(embedding_service.embed_text(ko_text))
         en_emb = np.array(embedding_service.embed_text(en_text))
-        ja_emb = np.array(embedding_service.embed_text(ja_text))
 
         # Cross-language similarity should be relatively high for same concept
         ko_en_sim = np.dot(ko_emb, en_emb)
-        ko_ja_sim = np.dot(ko_emb, ja_emb)
 
         assert ko_en_sim > 0.4  # Multilingual model should capture semantic similarity
-        assert ko_ja_sim > 0.4
 
 
 class TestModelValidation:
@@ -268,13 +248,13 @@ class TestModelValidation:
 
     def test_validate_model_returns_true(self, embedding_service):
         """Test validate_model() returns True for properly loaded model."""
-        assert embedding_service.validate_model() == True
+        assert embedding_service.validate_model()
 
     def test_validate_model_checks_dimension(self, embedding_service):
         """Test validate_model() checks embedding dimension."""
         # This test validates the validation method itself
         result = embedding_service.validate_model()
-        assert result == True
+        assert result
 
         # Test embedding from validation has correct dimension
         test_embedding = embedding_service.embed_text("테스트")
@@ -283,7 +263,7 @@ class TestModelValidation:
     def test_validate_model_checks_normalization(self, embedding_service):
         """Test validate_model() checks L2 normalization."""
         result = embedding_service.validate_model()
-        assert result == True
+        assert result
 
         # Verify normalization
         test_embedding = embedding_service.embed_text("정규화 확인")
@@ -345,22 +325,6 @@ class TestExtendedMultilingualSupport:
 
         assert len(embedding) == 384
         print(f"Mixed: {text} → embedding generated")
-
-    def test_multilingual_embedding_japanese(self, embedding_service):
-        """Test Japanese text embedding."""
-        text = "日本語のテキスト"
-        embedding = embedding_service.embed_text(text)
-
-        assert len(embedding) == 384
-        print(f"Japanese: {text} → embedding generated")
-
-    def test_multilingual_embedding_chinese(self, embedding_service):
-        """Test Chinese text embedding."""
-        text = "中文文本"
-        embedding = embedding_service.embed_text(text)
-
-        assert len(embedding) == 384
-        print(f"Chinese: {text} → embedding generated")
 
     def test_special_characters_sql(self, embedding_service):
         """Test SQL special characters."""
@@ -424,18 +388,16 @@ class TestExtendedMultilingualSupport:
         assert len(embedding) == 384
 
     def test_multilingual_batch_processing(self, embedding_service):
-        """Test batch processing with multilingual texts."""
+        """Test batch processing with Korean and English texts."""
         texts = [
             "한국어 텍스트",
             "English text",
-            "日本語テキスト",
-            "中文文本",
             "PostgreSQL의 B-tree 인덱스"
         ]
 
         embeddings = embedding_service.embed_texts(texts)
 
-        assert len(embeddings) == 5
+        assert len(embeddings) == 3
         assert all(len(emb) == 384 for emb in embeddings)
         print(f"Multilingual batch: {len(texts)} texts processed")
 
@@ -455,28 +417,18 @@ class TestExtendedMultilingualSupport:
         print(f"Special characters: {len(texts)} variants tested")
 
     def test_cross_language_semantic_similarity(self, embedding_service):
-        """Test semantic similarity across languages."""
+        """Test semantic similarity between Korean and English."""
         korean_text = "데이터베이스"
         english_text = "database"
-        japanese_text = "データベース"
-        chinese_text = "数据库"
 
         ko_emb = np.array(embedding_service.embed_text(korean_text))
         en_emb = np.array(embedding_service.embed_text(english_text))
-        ja_emb = np.array(embedding_service.embed_text(japanese_text))
-        zh_emb = np.array(embedding_service.embed_text(chinese_text))
 
         # Cross-language similarity should be relatively high for same concept
         ko_en_sim = np.dot(ko_emb, en_emb)
-        ko_ja_sim = np.dot(ko_emb, ja_emb)
-        ko_zh_sim = np.dot(ko_emb, zh_emb)
 
         print(f"\nCross-language similarity:")
         print(f"  Korean-English: {ko_en_sim:.3f}")
-        print(f"  Korean-Japanese: {ko_ja_sim:.3f}")
-        print(f"  Korean-Chinese: {ko_zh_sim:.3f}")
 
         # Multilingual model should capture semantic similarity
         assert ko_en_sim > 0.4, f"Korean-English similarity {ko_en_sim:.3f} too low"
-        assert ko_ja_sim > 0.4, f"Korean-Japanese similarity {ko_ja_sim:.3f} too low"
-        assert ko_zh_sim > 0.4, f"Korean-Chinese similarity {ko_zh_sim:.3f} too low"

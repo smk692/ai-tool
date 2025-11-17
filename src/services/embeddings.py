@@ -120,10 +120,10 @@ class HuggingFaceEmbedding:
             ValueError: If texts list is empty
 
         Example:
-            >>> texts = ["한국어", "English", "日本語"]
+            >>> texts = ["한국어", "English"]
             >>> vectors = service.embed_texts(texts)
             >>> len(vectors)
-            3
+            2
         """
         # Validate input
         if not texts:

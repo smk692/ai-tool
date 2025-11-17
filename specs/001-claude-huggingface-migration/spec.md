@@ -24,20 +24,13 @@ As a developer, I need to replace the OpenAI GPT-4o integration with Claude Code
 
 ---
 
-### User Story 2 - System Uses High-Quality Embeddings (Priority: P2)
+### User Story 2 - Hugging Face Embedding Integration (Priority: P2)
 
-As a system administrator, I need the vector search to use high-quality Hugging Face embedding models so that document retrieval accuracy meets or exceeds the 90% target for Top-5 search results.
+**Note**: User Story 2 has been moved to a separate feature specification for focused implementation and validation.
 
-**Why this priority**: Embedding quality directly impacts search accuracy, which is critical for Knowledge Discovery. This builds upon P1 by enhancing the quality of one component, but the system can function with the existing embedding model while this is evaluated.
+**See**: [`specs/002-embedding-validation/spec.md`](../002-embedding-validation/spec.md) for complete embedding integration requirements, implementation tasks (T041-T049), and acceptance criteria.
 
-**Independent Test**: Can be tested by running a benchmark test set of 100 queries against the knowledge base and measuring Top-5 accuracy. Success is measured by achieving ≥90% accuracy with the new embedding model.
-
-**Acceptance Scenarios**:
-
-1. **Given** a high-quality Hugging Face embedding model is configured, **When** the system indexes 1000 documents, **Then** all documents are successfully embedded and stored in ChromaDB
-2. **Given** the embedding model is active, **When** a user searches for a Korean language query, **Then** the system returns relevant results with ≥90% Top-5 accuracy
-3. **Given** the embedding process runs, **When** monitoring the vector search latency, **Then** the search completes within 0.5 seconds (current SLA)
-4. **Given** the new embedding model, **When** comparing with the previous model, **Then** the new model provides equal or better multilingual support for Korean text
+**Summary**: Integration of Hugging Face `paraphrase-multilingual-MiniLM-L12-v2` embedding model with validation testing to ensure ≥90% Top-5 search accuracy and ≤0.5s search latency.
 
 ---
 
@@ -81,7 +74,7 @@ As a project stakeholder, I need the constitutional budget updated and monitorin
 
 - **FR-001**: System MUST remove all OpenAI GPT-4o API dependencies from codebase and configuration
 - **FR-002**: System MUST integrate Claude API for all LLM operations using Anthropic API Python library (anthropic package) with direct HTTP API calls
-- **FR-003**: System MUST continue using existing paraphrase-multilingual-MiniLM-L12-v2 embedding model (proven Korean support, 384 dimensions, fast inference) for vector search
+- **FR-003**: System MUST integrate Hugging Face paraphrase-multilingual-MiniLM-L12-v2 embedding model (see [`specs/002-embedding-validation/spec.md`](../002-embedding-validation/spec.md) for implementation details)
 - **FR-004**: System MUST update constitution.md with MAJOR version bump (1.0.0 → 2.0.0) reflecting the LLM change
 - **FR-005**: System MUST implement budget monitoring that tracks daily Claude Code API costs and alerts when exceeding thresholds
 - **FR-006**: System MUST maintain Korean language support for all user interactions (Text-to-SQL, Knowledge Discovery, Query Assistant)
@@ -89,7 +82,7 @@ As a project stakeholder, I need the constitutional budget updated and monitorin
 - **FR-008**: System MUST maintain or improve accuracy targets (SQL query generation: ≥85%, document search Top-5: ≥90%, intent classification: ≥95%)
 - **FR-009**: System MUST update all documentation (README, plan.md, tasks.md) to reflect the Claude Code migration and remove OpenAI references
 - **FR-010**: System MUST handle API authentication errors gracefully with user-friendly error messages
-- **FR-011**: System MUST re-index all existing documents with new embeddings to ensure search consistency (if embedding model changes)
+- **FR-011**: System MUST re-index all existing documents with new embeddings (see [`specs/002-embedding-validation/`](../002-embedding-validation/) for embedding implementation and validation)
 
 ### Key Entities
 
@@ -113,6 +106,6 @@ As a project stakeholder, I need the constitutional budget updated and monitorin
 
 - **SC-005**: Migration is completed with zero data loss and less than 4 hours of service interruption (planned maintenance window)
 
-- **SC-006**: Document search accuracy using Hugging Face embeddings achieves ≥90% Top-5 accuracy on benchmark test set (100 queries)
+- **SC-006**: Document search accuracy using Hugging Face embeddings achieves ≥90% Top-5 accuracy (see [`specs/002-embedding-validation/spec.md`](../002-embedding-validation/spec.md) for validation criteria)
 
 - **SC-007**: Constitutional amendment is ratified with version 2.0.0 and synchronized across all project documentation within 1 week of migration completion
