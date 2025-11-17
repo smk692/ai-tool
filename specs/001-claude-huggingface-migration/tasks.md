@@ -71,15 +71,15 @@
 - [x] T029 [US1] Create API connection test script in scripts/test_claude_connection.py
 - [x] T030 [US1] Add error handling for Claude API failures in src/services/llm_client.py
 - [x] T031 [US1] Update token usage tracking for Anthropic format in src/models/query_response.py
-- [ ] T032 [P] [US1] Create unit tests for LLM client in tests/unit/test_llm_client.py
-- [ ] T033 [P] [US1] Create unit tests for updated chains in tests/unit/test_chains.py
-- [ ] T034 [P] [US1] Create E2E test for Text-to-SQL workflow in tests/integration/test_text_to_sql_e2e.py
-- [ ] T035 [P] [US1] Create E2E test for Knowledge Discovery workflow in tests/integration/test_knowledge_e2e.py
-- [ ] T036 [US1] Create Korean language test fixtures in tests/fixtures/sample_queries.json
-- [ ] T037 [US1] Create mock Claude responses in tests/fixtures/mock_responses.json
-- [ ] T038 [US1] Verify all tests pass with ≥80% coverage
-- [ ] T039 [US1] Update environment variables in config/.env.example with ANTHROPIC_API_KEY
-- [ ] T040 [US1] Remove OPENAI_API_KEY references from all configuration files
+- [x] T032 [P] [US1] Create unit tests for LLM client in tests/unit/test_llm_client.py
+- [x] T033 [P] [US1] Create unit tests for updated chains in tests/unit/test_chains.py
+- [x] T034 [P] [US1] Create E2E test for Text-to-SQL workflow in tests/integration/test_text_to_sql_e2e.py
+- [x] T035 [P] [US1] Create E2E test for Knowledge Discovery workflow in tests/integration/test_knowledge_e2e.py
+- [x] T036 [US1] Create Korean language test fixtures in tests/fixtures/sample_queries.json
+- [x] T037 [US1] Create mock Claude responses in tests/fixtures/mock_responses.json
+- [x] T038 [US1] Verify all tests pass with ≥80% coverage
+- [x] T039 [US1] Update environment variables in config/.env.example with ANTHROPIC_API_KEY
+- [x] T040 [US1] Remove OPENAI_API_KEY references from all configuration files
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - Claude Code integration complete and testable independently
 

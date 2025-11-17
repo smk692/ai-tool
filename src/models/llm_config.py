@@ -10,7 +10,6 @@ class LLMProvider(str, Enum):
     """Supported LLM providers."""
 
     ANTHROPIC = "anthropic"
-    OPENAI = "openai"  # Legacy support
 
 
 class LLMConfiguration(BaseModel):
@@ -43,12 +42,10 @@ class LLMConfiguration(BaseModel):
 
     @validator("api_key")
     def validate_api_key(cls, v: str, values: dict) -> str:
-        """Validate API key format based on provider."""
+        """Validate API key format for Anthropic Claude."""
         provider = values.get("provider")
         if provider == LLMProvider.ANTHROPIC and not v.startswith("sk-ant-"):
             raise ValueError("Anthropic API key must start with 'sk-ant-'")
-        if provider == LLMProvider.OPENAI and not v.startswith("sk-"):
-            raise ValueError("OpenAI API key must start with 'sk-'")
         return v
 
     @validator("temperature")
