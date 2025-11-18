@@ -1,12 +1,12 @@
 """Query Response entity for AI assistant responses."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 
 class ResponseType(str, Enum):
@@ -68,36 +68,49 @@ class QueryResponse(BaseModel):
     execution_time: float = Field(..., gt=0.0, description="Response generation time (seconds)")
     token_usage: TokenUsage = Field(..., description="LLM API token usage")
 
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response generation time")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Response generation time")
     error_message: Optional[str] = Field(default=None, description="Error details (if type=error)")
 
-    @validator("response_text")
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_encoders={
+            UUID: str,
+            datetime: lambda v: v.isoformat(),
+            Decimal: float,
+        }
+    )
+
+    @field_validator("response_text", mode="before")
+    @classmethod
     def validate_response_text(cls, v: str) -> str:
         """Validate response text is not empty."""
         if not v.strip():
             raise ValueError("Response text cannot be empty")
         return v
 
-    @validator("sql_query")
-    def validate_sql_query(cls, v: Optional[str], values: dict) -> Optional[str]:
+    @field_validator("sql_query", mode="before")
+    @classmethod
+    def validate_sql_query(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
         """Validate SQL query is present for sql_query type."""
-        response_type = values.get("response_type")
+        response_type = info.data.get("response_type")
         if response_type == ResponseType.SQL_QUERY and not v:
             raise ValueError("SQL query is required for sql_query response type")
         return v
 
-    @validator("source_documents")
-    def validate_source_documents(cls, v: List[SourceDocument], values: dict) -> List[SourceDocument]:
+    @field_validator("source_documents", mode="before")
+    @classmethod
+    def validate_source_documents(cls, v: List[SourceDocument], info: ValidationInfo) -> List[SourceDocument]:
         """Validate source documents are present for document_answer type."""
-        response_type = values.get("response_type")
+        response_type = info.data.get("response_type")
         if response_type == ResponseType.DOCUMENT_ANSWER and not v:
             raise ValueError("Source documents are required for document_answer response type")
         return v
 
-    @validator("execution_time")
-    def validate_execution_time_sla(cls, v: float, values: dict) -> float:
+    @field_validator("execution_time", mode="before")
+    @classmethod
+    def validate_execution_time_sla(cls, v: float, info: ValidationInfo) -> float:
         """Log warning if execution time exceeds SLA."""
-        response_type = values.get("response_type")
+        response_type = info.data.get("response_type")
 
         # SLA thresholds
         sla_limits = {
@@ -116,13 +129,3 @@ class QueryResponse(BaseModel):
             )
 
         return v
-
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-        json_encoders = {
-            UUID: str,
-            datetime: lambda v: v.isoformat(),
-            Decimal: float,
-        }

@@ -1,0 +1,77 @@
+name: Test and Coverage
+
+on:
+  push:
+    branches:
+      - main
+      - 003-quality-enhancement
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests with coverage
+        run: |
+          python -m pytest tests/unit/ \
+            --cov=src \
+            --cov-report=json \
+            --cov-report=html \
+            --cov-report=term-missing \
+            -v
+
+      - name: Check coverage threshold
+        run: |
+          python -c "
+          import json
+          with open('coverage.json') as f:
+              data = json.load(f)
+              total_coverage = data['totals']['percent_covered']
+              print(f'Total coverage: {total_coverage:.2f}%')
+              if total_coverage < 80.0:
+                  print('ERROR: Coverage below 80% threshold!')
+                  exit(1)
+              print('✅ Coverage threshold met (≥80%)')
+          "
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-html-report
+          path: htmlcov/
+          retention-days: 30
+
+      - name: Upload JSON coverage report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-json-report
+          path: coverage.json
+          retention-days: 30
+
+      - name: Coverage Summary
+        if: success()
+        run: |
+          echo "✅ All tests passed with coverage ≥80%"
+          echo "📊 Coverage reports uploaded as artifacts"
