@@ -196,13 +196,14 @@ class VectorStore:
             ]
             search_filter = Filter(must=must_conditions)
 
-        results = self.client.search(
+        # qdrant-client 1.16+ uses query() instead of search()
+        results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=limit,
             score_threshold=score_threshold,
             query_filter=search_filter,
-        )
+        ).points
 
         return [
             {
@@ -284,8 +285,8 @@ class VectorStore:
         info = self.client.get_collection(self.collection_name)
         return {
             "name": self.collection_name,
-            "vectors_count": info.vectors_count,
             "points_count": info.points_count,
+            "indexed_vectors_count": info.indexed_vectors_count,
             "status": str(info.status),
         }
 

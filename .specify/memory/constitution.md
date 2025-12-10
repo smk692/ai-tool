@@ -99,7 +99,7 @@ AI 기반 회사 문서 통합 검색 Slack 봇 프로젝트의 핵심 원칙과
   - 오픈소스 대안 부재 증명
   - 명확한 비용 대비 효과(ROI) 계산
   - 벤더 락인(vendor lock-in) 리스크 평가
-- **MUST**: LLM API는 OpenAI GPT-4o 사용 (유일한 상용 컴포넌트)
+- **MUST**: LLM API는 Anthropic Claude (메인) 또는 Google Gemini (백업) 사용
 - **SHOULD**: 커뮤니티 기여 고려 (내부 개선사항 오픈소스화 검토)
 
 **근거**:
@@ -206,9 +206,12 @@ AI 기반 회사 문서 통합 검색 Slack 봇 프로젝트의 핵심 원칙과
 ### 금지 사항
 
 **절대 사용 금지**:
-- 상용 Vector DB (Pinecone, Weaviate 등) - ChromaDB 사용
-- 상용 LLM (Claude, Gemini 등) - OpenAI GPT-4o만 사용
+- 상용 Vector DB (Pinecone, Weaviate 등) - ChromaDB 또는 Qdrant 사용
 - 비오픈소스 라이브러리 (명확한 정당화 없이)
+
+**허용된 상용 LLM**:
+- Anthropic Claude (메인)
+- Google Gemini (백업)
 
 ---
 
@@ -342,4 +345,4 @@ AI 기반 회사 문서 통합 검색 Slack 봇 프로젝트의 핵심 원칙과
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2025-01-13 | **Last Amended**: 2025-01-13
+**Version**: 1.1.0 | **Ratified**: 2025-01-13 | **Last Amended**: 2025-12-10

@@ -2,15 +2,13 @@
 
 RAG 시스템 - 문서 인덱싱 및 Slack 챗봇 서비스
 
-Last updated: 2025-12-05
+Last updated: 2025-12-10
 
 ## Active Technologies
-- Qdrant (Vector DB), Redis (캐싱 - 선택적) (004-rag-indexer)
-- Python 3.10+ (타입 힌팅 필수) (004-rag-indexer)
 
-- Python 3.10+
+- Python 3.10+ (타입 힌팅 필수)
 - Qdrant (Vector DB)
-- Redis (Cache)
+- Redis (Cache - 선택적)
 - HuggingFace sentence-transformers (Embeddings)
 - Anthropic Claude API (LLM)
 - Slack Bolt (Bot Framework)
@@ -19,27 +17,41 @@ Last updated: 2025-12-05
 
 ```text
 ai-tool/
-├── rag-indexer/          # 문서 인덱싱 서비스
+├── rag-indexer/          # 문서 인덱싱 서비스 (004-rag-indexer) ✅ 구현 완료
 │   ├── src/
 │   ├── tests/
 │   └── pyproject.toml
-├── rag-chatbot/          # Slack RAG 챗봇 서비스
+├── rag-chatbot/          # Slack RAG 챗봇 서비스 (005-rag-chatbot) ✅ 구현 완료
 │   ├── src/
 │   ├── tests/
 │   └── pyproject.toml
-├── shared/               # 공통 모듈 (임베딩, 벡터DB 클라이언트)
-│   ├── src/
+├── shared/               # 공통 모듈 (임베딩, 벡터DB 클라이언트) ✅ 구현 완료
+│   ├── shared/
 │   ├── tests/
 │   └── pyproject.toml
 ├── infra/docker/         # Docker 인프라
 │   ├── docker-compose.yml
 │   └── .env.example
-├── specs/                # Feature 명세
+├── specs/                # Feature 명세 (SpecKit)
 │   ├── 004-rag-indexer/
 │   └── 005-rag-chatbot/
+├── .specify/             # SpecKit 설정 및 문서
+│   ├── USAGE.md          # 워크플로우 가이드
+│   ├── memory/
+│   ├── scripts/
+│   └── templates/
 ├── _legacy/              # 아카이브된 기존 코드 (참고용)
 └── Makefile
 ```
+
+## SpecKit Workflow
+
+새 기능 개발 시 SpecKit 워크플로우 사용:
+```
+/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement
+```
+
+자세한 사용법: `.specify/USAGE.md` 참조
 
 ## Commands
 
@@ -76,7 +88,7 @@ make lint-fix          # Auto-fix lint issues
 
 ## Services Overview
 
-### rag-indexer (004-rag-indexer)
+### rag-indexer (004-rag-indexer) ✅
 문서 등록 파이프라인 - Notion 데이터와 Swagger.json을 벡터DB에 등록
 - Notion API 연동 (페이지 + 데이터베이스)
 - Swagger/OpenAPI 파싱
@@ -84,13 +96,19 @@ make lint-fix          # Auto-fix lint issues
 - 스케줄러 자동 동기화
 - CLI 수동 트리거
 
-### rag-chatbot (005-rag-chatbot)
+### rag-chatbot (005-rag-chatbot) ✅
 Slack RAG 챗봇 - 벡터DB 검색 및 Claude LLM을 통한 Slack 응답
 - Slack 이벤트 처리 (멘션, DM)
 - 벡터DB 유사 문서 검색
 - Claude LLM 답변 생성
-- 대화 컨텍스트 유지
+- 대화 컨텍스트 유지 (Redis)
 - 출처 표시 및 피드백 수집
+- 가드레일 (민감 정보 탐지)
+
+### shared ✅
+공통 모듈 - rag-indexer와 rag-chatbot에서 공유
+- `shared.embedding`: HuggingFace 임베딩 클라이언트
+- `shared.vector_store`: Qdrant 벡터 스토어 클라이언트
 
 ## Environment Variables
 
@@ -118,14 +136,47 @@ SLACK_SIGNING_SECRET=your_signing_secret
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 ```
 
-## Recent Changes
-- 004-rag-indexer: Added Python 3.10+ (타입 힌팅 필수)
-- 004-rag-indexer: Added Python 3.10+
+## Quick Start
 
-- 레거시 코드 아카이브: src/, tests/ → _legacy/
+### 1. 환경 변수 설정
+```bash
+cd infra/docker
+cp .env.example .env
+# .env 파일 편집하여 API 키 입력
+```
+
+### 2. 인프라 실행
+```bash
+make infra-up  # Qdrant + Redis 시작
+```
+
+### 3. rag-indexer 실행 (문서 인덱싱)
+```bash
+cd rag-indexer
+python -m venv .venv && source .venv/bin/activate
+pip install -e ../shared && pip install -e ".[dev]"
+
+# Notion 문서 인덱싱
+python -m src.cli index-notion --database-id <DB_ID>
+```
+
+### 4. rag-chatbot 실행 (Slack 봇)
+```bash
+cd rag-chatbot
+python -m venv .venv && source .venv/bin/activate
+pip install -e ../shared && pip install -e ".[dev]"
+
+# 봇 실행
+python -m src.main
+```
+
+## Recent Changes
+- 2025-12-10: 005-rag-chatbot 구현 완료 ✅
+- 2025-12-10: SpecKit USAGE.md 문서 추가
+- 2025-12-10: 프로젝트 구조 개편 완료
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
 
-
-모든 주석과 Summery는 한글로!
+## 중요
+모든 주석과 Summary는 한글로!
