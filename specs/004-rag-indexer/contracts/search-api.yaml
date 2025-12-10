@@ -1,0 +1,315 @@
+openapi: "3.1.0"
+info:
+  title: RAG Document Indexer - Search API
+  version: "1.0.0"
+  description: |
+    RAG Document Indexer의 내부 Search API 정의입니다.
+    이 API는 rag-chatbot 서비스에서 직접 Python 모듈로 호출됩니다.
+    HTTP REST API가 아닌 내부 Python API 계약을 OpenAPI 형식으로 문서화합니다.
+
+    ## 사용 방법
+    ```python
+    from rag_indexer.services import get_indexer
+
+    indexer = get_indexer()
+    results = indexer.search(
+        query="사용자 질문",
+        limit=10,
+        source_type="notion",
+    )
+    ```
+
+servers:
+  - url: "python://rag_indexer.services.indexer"
+    description: Python module import path
+
+paths:
+  /search:
+    post:
+      operationId: search
+      summary: 유사 청크 검색
+      description: |
+        쿼리와 유사한 문서 청크를 벡터 유사도 기반으로 검색합니다.
+        다양한 필터 옵션을 통해 검색 범위를 제한할 수 있습니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchRequest"
+      responses:
+        "200":
+          description: 검색 결과 목록
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SearchResult"
+
+  /search_with_parent_context:
+    post:
+      operationId: searchWithParentContext
+      summary: 계층적 검색 (부모 컨텍스트 포함)
+      description: |
+        Phase 1.3 계층적 청킹 기능.
+        자식 청크에서 정밀 검색 후, 부모 청크의 컨텍스트를 함께 반환합니다.
+        더 풍부한 컨텍스트가 필요한 RAG 응답에 적합합니다.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HierarchicalSearchRequest"
+      responses:
+        "200":
+          description: 부모 컨텍스트가 포함된 검색 결과
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HierarchicalSearchResult"
+
+  /get_collection_stats:
+    get:
+      operationId: getCollectionStats
+      summary: 컬렉션 통계 조회
+      description: 벡터 컬렉션의 청크 수 및 타입별 통계를 반환합니다.
+      responses:
+        "200":
+          description: 컬렉션 통계
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionStats"
+
+components:
+  schemas:
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: 검색 쿼리 텍스트
+          example: "API 인증 방법"
+        limit:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+          description: 최대 반환 결과 수
+        source_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 특정 소스로 필터링
+        source_type:
+          type: string
+          enum: ["notion", "swagger"]
+          nullable: true
+          description: 소스 타입으로 필터링
+        score_threshold:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          nullable: true
+          description: 최소 유사도 점수 (0.0~1.0)
+        language:
+          type: string
+          enum: ["ko", "en"]
+          nullable: true
+          description: 언어 필터 (Phase 1.1)
+        content_type:
+          type: string
+          enum: ["api_doc", "guide", "faq", "tutorial", "reference"]
+          nullable: true
+          description: 컨텐츠 타입 필터 (Phase 1.2 AI 추출)
+        http_method:
+          type: string
+          enum: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+          nullable: true
+          description: HTTP 메서드 필터 (Swagger 문서용)
+        chunk_type:
+          type: string
+          enum: ["standard", "parent", "child"]
+          nullable: true
+          description: 청크 타입 필터 (Phase 1.3 계층적 청킹)
+
+    HierarchicalSearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: 검색 쿼리 텍스트
+        limit:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+        source_id:
+          type: string
+          format: uuid
+          nullable: true
+        source_type:
+          type: string
+          enum: ["notion", "swagger"]
+          nullable: true
+        score_threshold:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          nullable: true
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 청크 ID
+        score:
+          type: number
+          format: float
+          description: 유사도 점수 (0.0~1.0)
+        payload:
+          $ref: "#/components/schemas/ChunkPayload"
+
+    HierarchicalSearchResult:
+      allOf:
+        - $ref: "#/components/schemas/SearchResult"
+        - type: object
+          properties:
+            parent_context:
+              type: string
+              nullable: true
+              description: 부모 청크의 텍스트 (더 넓은 컨텍스트)
+
+    ChunkPayload:
+      type: object
+      description: Qdrant에 저장된 청크 페이로드
+      properties:
+        chunk_id:
+          type: string
+          format: uuid
+        document_id:
+          type: string
+          format: uuid
+        source_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum: ["notion", "swagger"]
+        title:
+          type: string
+          description: 문서 제목
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: 원본 문서 URL
+        chunk_index:
+          type: integer
+          description: 문서 내 청크 순서 (0-indexed)
+        text:
+          type: string
+          description: 청크 텍스트 내용
+        # Phase 1.1: Enhanced metadata
+        language:
+          type: string
+          enum: ["ko", "en"]
+          description: 감지된 언어
+        token_count:
+          type: integer
+          description: 추정 토큰 수
+        total_chunks:
+          type: integer
+          description: 문서의 전체 청크 수
+        created_at:
+          type: string
+          format: date-time
+          description: 청크 생성 시각
+        # Phase 1.2: AI-extracted metadata (optional)
+        ai_content_type:
+          type: string
+          nullable: true
+          description: AI가 분류한 컨텐츠 타입
+        ai_topics:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: AI가 추출한 주제 목록
+        ai_difficulty:
+          type: string
+          enum: ["beginner", "intermediate", "advanced"]
+          nullable: true
+          description: AI가 평가한 난이도
+        ai_has_code_samples:
+          type: boolean
+          nullable: true
+          description: 코드 샘플 포함 여부
+        ai_key_entities:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: 주요 엔티티 목록
+        ai_summary:
+          type: string
+          nullable: true
+          description: AI 생성 요약
+        # Phase 1.3: Hierarchical chunking
+        chunk_type:
+          type: string
+          enum: ["standard", "parent", "child"]
+          description: 청크 타입
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: 부모 청크 ID (child 타입만 해당)
+        # Source-specific metadata
+        notion_page_id:
+          type: string
+          nullable: true
+          description: Notion 페이지 ID
+        notion_database_id:
+          type: string
+          nullable: true
+          description: Notion 데이터베이스 ID
+        api_endpoint:
+          type: string
+          nullable: true
+          description: Swagger API 엔드포인트
+        http_method:
+          type: string
+          nullable: true
+          description: Swagger HTTP 메서드
+
+    CollectionStats:
+      type: object
+      properties:
+        collection_name:
+          type: string
+          description: Qdrant 컬렉션 이름
+          example: "rag_documents"
+        total_chunks:
+          type: integer
+          description: 전체 청크 수
+        standard_chunks:
+          type: integer
+          description: 표준 청크 수
+        parent_chunks:
+          type: integer
+          description: 부모 청크 수 (Phase 1.3)
+        child_chunks:
+          type: integer
+          description: 자식 청크 수 (Phase 1.3)
