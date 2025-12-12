@@ -35,6 +35,31 @@ services:
       timeout: 10s
       retries: 3
 
+  # RAG Chatbot - Slack 챗봇 서비스
+  rag-chatbot:
+    build:
+      context: ../../rag-chatbot
+      dockerfile: Dockerfile
+    container_name: rag-chatbot
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Slack 및 Anthropic API 키는 .env 파일에서 로드
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+      - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    restart: unless-stopped
+    profiles:
+      - chatbot  # docker-compose --profile chatbot up으로 활성화
+
 volumes:
   qdrant_data:
     driver: local
