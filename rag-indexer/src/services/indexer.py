@@ -9,14 +9,12 @@
     - 다양한 필터 옵션의 검색 기능
 """
 
-from datetime import datetime
-from typing import Optional
 
 from shared import VectorStore, get_vector_store
 
-from ..models import Chunk, ChunkType, Document, Source
+from ..models import ChunkType, Document, Source
 from ..storage import Storage, get_storage
-from .ai_extractor import AIExtractor, ExtractedMetadata, get_ai_extractor
+from .ai_extractor import AIExtractor, get_ai_extractor
 from .chunker import Chunker, HierarchicalChunker, get_chunker, get_hierarchical_chunker
 from .embedder import Embedder, get_embedder
 
@@ -44,12 +42,12 @@ class Indexer:
 
     def __init__(
         self,
-        vector_store: Optional[VectorStore] = None,
-        embedder: Optional[Embedder] = None,
-        chunker: Optional[Chunker] = None,
-        hierarchical_chunker: Optional[HierarchicalChunker] = None,
-        storage: Optional[Storage] = None,
-        ai_extractor: Optional[AIExtractor] = None,
+        vector_store: VectorStore | None = None,
+        embedder: Embedder | None = None,
+        chunker: Chunker | None = None,
+        hierarchical_chunker: HierarchicalChunker | None = None,
+        storage: Storage | None = None,
+        ai_extractor: AIExtractor | None = None,
         collection_name: str = DEFAULT_COLLECTION,
         enable_ai_extraction: bool = False,
         enable_hierarchical: bool = False,
@@ -138,7 +136,7 @@ class Indexer:
         return self._storage
 
     @property
-    def ai_extractor(self) -> Optional[AIExtractor]:
+    def ai_extractor(self) -> AIExtractor | None:
         """AI 추출기를 지연 로딩합니다 (활성화된 경우).
 
         AI 추출이 비활성화되어 있으면 None을 반환합니다.
@@ -202,7 +200,7 @@ class Indexer:
         document: Document,
         source: Source,
         show_progress: bool = False,
-        hierarchical: Optional[bool] = None,
+        hierarchical: bool | None = None,
     ) -> int:
         """단일 문서를 인덱싱합니다.
 
@@ -356,13 +354,13 @@ class Indexer:
         self,
         query: str,
         limit: int = 10,
-        source_id: Optional[str] = None,
-        source_type: Optional[str] = None,
-        score_threshold: Optional[float] = None,
-        language: Optional[str] = None,
-        content_type: Optional[str] = None,
-        http_method: Optional[str] = None,
-        chunk_type: Optional[str] = None,
+        source_id: str | None = None,
+        source_type: str | None = None,
+        score_threshold: float | None = None,
+        language: str | None = None,
+        content_type: str | None = None,
+        http_method: str | None = None,
+        chunk_type: str | None = None,
     ) -> list[dict]:
         """유사한 청크를 검색합니다 (향상된 필터링 지원).
 
@@ -420,9 +418,9 @@ class Indexer:
         self,
         query: str,
         limit: int = 10,
-        source_id: Optional[str] = None,
-        source_type: Optional[str] = None,
-        score_threshold: Optional[float] = None,
+        source_id: str | None = None,
+        source_type: str | None = None,
+        score_threshold: float | None = None,
     ) -> list[dict]:
         """자식 청크를 검색하고 부모 컨텍스트를 조회합니다.
 
@@ -475,7 +473,7 @@ class Indexer:
 
         return enriched_results
 
-    def get_parent_chunk(self, parent_id: str) -> Optional[dict]:
+    def get_parent_chunk(self, parent_id: str) -> dict | None:
         """ID로 부모 청크를 조회합니다.
 
         Args:
@@ -520,7 +518,7 @@ class Indexer:
 
 
 # 모듈 레벨 싱글톤 인스턴스
-_indexer: Optional[Indexer] = None
+_indexer: Indexer | None = None
 
 
 def get_indexer(collection_name: str = Indexer.DEFAULT_COLLECTION) -> Indexer:

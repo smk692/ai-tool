@@ -14,7 +14,6 @@ JSON 파일을 사용한 영구 상태 관리:
 import json
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 from .models import Document, Source, SourceType, SyncJob
 
@@ -61,7 +60,7 @@ class Storage:
         data = self._load_json(self._sources_path, {"sources": []})
         return [Source.from_json_safe(s) for s in data.get("sources", [])]
 
-    def get_source(self, source_id: str) -> Optional[Source]:
+    def get_source(self, source_id: str) -> Source | None:
         """ID로 소스를 조회합니다.
 
         Args:
@@ -76,7 +75,7 @@ class Storage:
                 return source
         return None
 
-    def get_source_by_name(self, name: str) -> Optional[Source]:
+    def get_source_by_name(self, name: str) -> Source | None:
         """이름으로 소스를 조회합니다.
 
         Args:
@@ -176,7 +175,7 @@ class Storage:
 
     # ==================== 문서 관리 ====================
 
-    def get_documents(self, source_id: Optional[str] = None) -> list[Document]:
+    def get_documents(self, source_id: str | None = None) -> list[Document]:
         """문서를 조회합니다. 소스별 필터링 가능.
 
         Args:
@@ -193,7 +192,7 @@ class Storage:
 
         return documents
 
-    def get_document(self, document_id: str) -> Optional[Document]:
+    def get_document(self, document_id: str) -> Document | None:
         """ID로 문서를 조회합니다.
 
         Args:
@@ -210,7 +209,7 @@ class Storage:
 
     def get_document_by_external_id(
         self, source_id: str, external_id: str
-    ) -> Optional[Document]:
+    ) -> Document | None:
         """외부 ID로 특정 소스 내 문서를 조회합니다.
 
         Args:
@@ -352,7 +351,7 @@ class Storage:
         # 작업을 찾을 수 없으면 추가
         return self.add_sync_job(job)
 
-    def get_last_sync_job(self, source_id: Optional[str] = None) -> Optional[SyncJob]:
+    def get_last_sync_job(self, source_id: str | None = None) -> SyncJob | None:
         """가장 최근 동기화 작업을 조회합니다.
 
         Args:
@@ -406,10 +405,10 @@ class Storage:
 
 
 # 전역 스토리지 인스턴스 (지연 초기화)
-_storage: Optional[Storage] = None
+_storage: Storage | None = None
 
 
-def get_storage(data_dir: Optional[Path | str] = None) -> Storage:
+def get_storage(data_dir: Path | str | None = None) -> Storage:
     """스토리지 인스턴스를 반환합니다.
 
     Args:

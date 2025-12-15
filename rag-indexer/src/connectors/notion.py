@@ -5,16 +5,15 @@ Notion 블록을 인덱싱용 일반 텍스트로 변환합니다.
 """
 
 import hashlib
+from collections.abc import Iterator
 from datetime import UTC, datetime
-from typing import Any, Iterator, Optional
 
 from notion_client import Client
-from notion_client.errors import APIResponseError
 
 from ..logging_config import Loggers
 from ..models import Document, NotionSourceConfig, Source
-from ..utils.rate_limit import TokenBucketRateLimiter, NOTION_RATE_LIMIT
-from ..utils.retry import notion_retry, NOTION_CONFIG, RetryConfig
+from ..utils.rate_limit import NOTION_RATE_LIMIT, TokenBucketRateLimiter
+from ..utils.retry import notion_retry
 
 logger = Loggers.notion()
 
@@ -141,8 +140,7 @@ class NotionConnector:
                 start_cursor=start_cursor,
                 page_size=page_size,
             )
-            for item in response.get("results", []):
-                yield item
+            yield from response.get("results", [])
 
             has_more = response.get("has_more", False)
             start_cursor = response.get("next_cursor")
@@ -151,7 +149,7 @@ class NotionConnector:
     def _query_database_page(
         self,
         database_id: str,
-        start_cursor: Optional[str],
+        start_cursor: str | None,
         page_size: int,
     ) -> dict:
         """데이터베이스 결과의 단일 페이지 쿼리 (재시도 포함).
@@ -174,7 +172,7 @@ class NotionConnector:
     def fetch_documents(
         self,
         source: Source,
-        existing_docs: Optional[list[Document]] = None,
+        existing_docs: list[Document] | None = None,
     ) -> tuple[list[Document], list[Document], list[str]]:
         """Notion 소스에서 모든 문서 가져오기.
 
@@ -243,7 +241,7 @@ class NotionConnector:
         source_id: str,
         page_id: str,
         existing_map: dict[str, Document],
-    ) -> Optional[Document]:
+    ) -> Document | None:
         """단일 페이지를 Document로 처리.
 
         Args:
@@ -321,7 +319,7 @@ class NotionConnector:
     def _list_block_children(
         self,
         block_id: str,
-        start_cursor: Optional[str],
+        start_cursor: str | None,
     ) -> dict:
         """블록 자식 목록 조회 (재시도 포함).
 
@@ -406,7 +404,7 @@ class NotionConnector:
             "icon": self._extract_icon(page.get("icon")),
         }
 
-    def _extract_icon(self, icon: Optional[dict]) -> Optional[str]:
+    def _extract_icon(self, icon: dict | None) -> str | None:
         """아이콘 이모지 또는 URL 추출.
 
         Args:

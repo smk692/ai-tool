@@ -19,7 +19,6 @@
 
 import logging
 import sys
-from typing import Optional
 
 import structlog
 
@@ -27,7 +26,7 @@ import structlog
 def configure_logging(
     level: str = "INFO",
     json_format: bool = False,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
 ) -> None:
     """structlog을 애플리케이션에 맞게 설정합니다.
 
@@ -91,7 +90,7 @@ def configure_logging(
     )
 
 
-def get_logger(name: Optional[str] = None) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str | None = None) -> structlog.stdlib.BoundLogger:
     """구조화된 로거 인스턴스를 반환합니다.
 
     Args:

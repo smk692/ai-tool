@@ -3,7 +3,7 @@
 Provides high-level interface for vector operations.
 """
 
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 from qdrant_client import QdrantClient
@@ -30,8 +30,8 @@ class VectorStore:
         self,
         host: str = "localhost",
         port: int = 6333,
-        api_key: Optional[str] = None,
-        collection_name: Optional[str] = None,
+        api_key: str | None = None,
+        collection_name: str | None = None,
     ):
         """Initialize vector store client.
 
@@ -45,7 +45,7 @@ class VectorStore:
         self.port = port
         self.collection_name = collection_name or self.DEFAULT_COLLECTION
 
-        self._client: Optional[QdrantClient] = None
+        self._client: QdrantClient | None = None
         self._api_key = api_key
 
     @property
@@ -174,8 +174,8 @@ class VectorStore:
         self,
         query_vector: list[float],
         limit: int = 10,
-        score_threshold: Optional[float] = None,
-        filter_conditions: Optional[dict[str, Any]] = None,
+        score_threshold: float | None = None,
+        filter_conditions: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for similar vectors.
 
@@ -214,7 +214,7 @@ class VectorStore:
             for r in results
         ]
 
-    def get_point(self, point_id: str) -> Optional[dict[str, Any]]:
+    def get_point(self, point_id: str) -> dict[str, Any] | None:
         """Get a single point by ID.
 
         Args:
@@ -251,7 +251,7 @@ class VectorStore:
         """
         return self.get_point(point_id) is not None
 
-    def count(self, filter_conditions: Optional[dict[str, Any]] = None) -> int:
+    def count(self, filter_conditions: dict[str, Any] | None = None) -> int:
         """Count points in collection.
 
         Args:
@@ -303,14 +303,14 @@ class VectorStore:
 
 
 # Default store instance (configured lazily)
-_default_store: Optional[VectorStore] = None
+_default_store: VectorStore | None = None
 
 
 def get_vector_store(
     host: str = "localhost",
     port: int = 6333,
-    api_key: Optional[str] = None,
-    collection_name: Optional[str] = None,
+    api_key: str | None = None,
+    collection_name: str | None = None,
 ) -> VectorStore:
     """Get vector store instance.
 

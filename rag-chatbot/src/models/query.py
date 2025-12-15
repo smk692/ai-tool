@@ -21,10 +21,13 @@ class Query(BaseModel):
         thread_ts: 스레드 타임스탬프 (대화 식별자)
         message_ts: 메시지 타임스탬프 (고유 식별자)
         is_dm: DM 여부
+        files: Slack 파일 메타데이터 배열
         created_at: 질문 수신 시간 (UTC)
     """
 
-    text: str = Field(..., min_length=1, max_length=4000, description="질문 텍스트")
+    text: str = Field(
+        default="", min_length=0, max_length=4000, description="질문 텍스트"
+    )
     user_id: str = Field(..., pattern=r"^U[A-Z0-9]{10}$", description="Slack 사용자 ID")
     channel_id: str = Field(
         ..., pattern=r"^[CD][A-Z0-9]{10}$", description="Slack 채널 ID"
@@ -32,9 +35,33 @@ class Query(BaseModel):
     thread_ts: str = Field(..., pattern=r"^\d+\.\d+$", description="스레드 타임스탬프")
     message_ts: str = Field(..., pattern=r"^\d+\.\d+$", description="메시지 타임스탬프")
     is_dm: bool = Field(default=False, description="DM 여부")
+    files: list[dict] = Field(default_factory=list, description="Slack 파일 배열")
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc), description="수신 시간"
     )
+
+    @property
+    def has_images(self) -> bool:
+        """이미지 파일 포함 여부 확인.
+
+        Returns:
+            이미지 파일이 하나라도 있으면 True
+        """
+        return any(
+            f.get("mimetype", "").startswith("image/") for f in self.files
+        )
+
+    @property
+    def image_files(self) -> list[dict]:
+        """이미지 파일만 필터링하여 반환.
+
+        Returns:
+            이미지 파일 목록
+        """
+        return [
+            f for f in self.files
+            if f.get("mimetype", "").startswith("image/")
+        ]
 
     @field_validator("text", mode="before")
     @classmethod
@@ -62,6 +89,7 @@ class Query(BaseModel):
         ts: str,
         thread_ts: str | None = None,
         channel_type: str | None = None,
+        files: list[dict] | None = None,
     ) -> "Query":
         """Slack 이벤트에서 Query 생성.
 
@@ -72,6 +100,7 @@ class Query(BaseModel):
             ts: 메시지 타임스탬프
             thread_ts: 스레드 타임스탬프 (없으면 ts 사용)
             channel_type: 채널 타입 (im = DM)
+            files: Slack 파일 배열
 
         Returns:
             Query 인스턴스
@@ -83,4 +112,5 @@ class Query(BaseModel):
             message_ts=ts,
             thread_ts=thread_ts or ts,
             is_dm=channel_type == "im" or channel.startswith("D"),
+            files=files or [],
         )

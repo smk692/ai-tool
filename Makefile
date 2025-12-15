@@ -5,7 +5,7 @@
         run-chatbot run-chatbot-bg stop-chatbot run-indexer \
         clean clean-cache clean-venv clean-all \
         setup setup-indexer setup-chatbot \
-        check health
+        check health download-model
 
 # 색상 정의
 GREEN  := \033[0;32m
@@ -119,6 +119,12 @@ setup-chatbot: ## rag-chatbot 전용 가상환경 설정
 	cd rag-chatbot && . .venv/bin/activate && pip install -e ".[dev]"
 	@echo "$(GREEN)✓ rag-chatbot 설정 완료$(NC)"
 	@echo "  → cd rag-chatbot && source .venv/bin/activate"
+
+download-model: ## 임베딩 모델 사전 다운로드 (챗봇 시작 속도 개선)
+	@echo "$(BLUE)▶ 임베딩 모델 다운로드 중...$(NC)"
+	@echo "$(YELLOW)  ⏳ 최초 실행 시 2-5분 소요 (2.2GB)$(NC)"
+	@python scripts/download_embedding_model.py
+	@echo "$(GREEN)✓ 모델 다운로드 완료$(NC)"
 
 ##@ 실행
 run-chatbot: ## Slack 챗봇 실행

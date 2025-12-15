@@ -11,9 +11,7 @@
     5: 내부 오류 (예상치 못한 예외)
 """
 
-from datetime import datetime
 from enum import IntEnum
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -21,8 +19,6 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from .config import get_settings
-from .connectors import NotionConnector, SwaggerConnector
 from .logging_config import configure_logging
 from .models import NotionSourceConfig, Source, SourceType, SwaggerSourceConfig
 from .scheduler import get_scheduler
@@ -81,7 +77,9 @@ def source_list():
     table.add_column("Last Synced", style="yellow")
 
     for source in sources:
-        last_synced = source.last_synced.strftime("%Y-%m-%d %H:%M") if source.last_synced else "Never"
+        last_synced = (
+            source.last_synced.strftime("%Y-%m-%d %H:%M") if source.last_synced else "Never"
+        )
         table.add_row(
             source.id[:8],
             source.name,
@@ -98,10 +96,12 @@ def source_add(
     name: str = typer.Option(..., "--name", "-n", help="Source name"),
     source_type: str = typer.Option(..., "--type", "-t", help="Source type (notion/swagger)"),
     # Notion options
-    page_ids: Optional[str] = typer.Option(None, "--page-ids", help="Comma-separated Notion page IDs"),
-    database_ids: Optional[str] = typer.Option(None, "--database-ids", help="Comma-separated Notion database IDs"),
+    page_ids: str | None = typer.Option(None, "--page-ids", help="Comma-separated Notion page IDs"),
+    database_ids: str | None = typer.Option(
+        None, "--database-ids", help="Comma-separated Notion database IDs"
+    ),
     # Swagger options
-    url: Optional[str] = typer.Option(None, "--url", "-u", help="Swagger/OpenAPI URL or file path"),
+    url: str | None = typer.Option(None, "--url", "-u", help="Swagger/OpenAPI URL or file path"),
 ):
     """Add a new data source."""
     storage = get_storage()
@@ -110,13 +110,17 @@ def source_add(
     try:
         src_type = SourceType(source_type.lower())
     except ValueError:
-        console.print(f"[red]Invalid source type: {source_type}. Use 'notion' or 'swagger'.[/red]")
+        console.print(
+            f"[red]Invalid source type: {source_type}. Use 'notion' or 'swagger'.[/red]"
+        )
         raise typer.Exit(ExitCode.INPUT_ERROR)
 
     # 타입별 설정 구성
     if src_type == SourceType.NOTION:
         if not page_ids and not database_ids:
-            console.print("[red]For Notion sources, provide --page-ids and/or --database-ids.[/red]")
+            console.print(
+                "[red]For Notion sources, provide --page-ids and/or --database-ids.[/red]"
+            )
             raise typer.Exit(ExitCode.INPUT_ERROR)
 
         config = NotionSourceConfig(
@@ -167,7 +171,9 @@ def source_remove(
         raise typer.Exit(ExitCode.INPUT_ERROR)
 
     if not force:
-        confirm = typer.confirm(f"Remove source '{source.name}'? This will delete all indexed documents.")
+        confirm = typer.confirm(
+            f"Remove source '{source.name}'? This will delete all indexed documents."
+        )
         if not confirm:
             console.print("[yellow]Cancelled.[/yellow]")
             raise typer.Exit(ExitCode.SUCCESS)
@@ -206,7 +212,9 @@ def source_show(
 [bold]Active:[/bold] {"Yes" if source.is_active else "No"}
 [bold]Documents:[/bold] {len(docs)}
 [bold]Created:[/bold] {source.created_at.strftime("%Y-%m-%d %H:%M")}
-[bold]Last Synced:[/bold] {source.last_synced.strftime("%Y-%m-%d %H:%M") if source.last_synced else "Never"}
+[bold]Last Synced:[/bold] {
+    source.last_synced.strftime("%Y-%m-%d %H:%M") if source.last_synced else "Never"
+}
 """
 
     console.print(Panel(panel_content, title=f"Source: {source.name}"))
@@ -217,7 +225,7 @@ def source_show(
 
 @sync_app.command("run")
 def sync_run(
-    source_id: Optional[str] = typer.Argument(None, help="Source ID to sync (all if not specified)"),
+    source_id: str | None = typer.Argument(None, help="Source ID to sync (all if not specified)"),
 ):
     """Run synchronization for sources."""
     scheduler = get_scheduler()
@@ -327,8 +335,8 @@ def sync_history(
 def search(
     query: str = typer.Argument(..., help="Search query"),
     limit: int = typer.Option(5, "--limit", "-l", help="Number of results"),
-    source_id: Optional[str] = typer.Option(None, "--source", "-s", help="Filter by source ID"),
-    source_type: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by source type"),
+    source_id: str | None = typer.Option(None, "--source", "-s", help="Filter by source ID"),
+    source_type: str | None = typer.Option(None, "--type", "-t", help="Filter by source type"),
 ):
     """Search indexed documents."""
     indexer = get_indexer()
@@ -410,11 +418,17 @@ def status():
 
 [bold cyan]Scheduler[/bold cyan]
   Running: {"Yes" if scheduler.is_running() else "No"}
-  Next Run: {scheduler.get_next_run().strftime("%Y-%m-%d %H:%M") if scheduler.get_next_run() else "Not scheduled"}
+  Next Run: {
+      scheduler.get_next_run().strftime("%Y-%m-%d %H:%M")
+      if scheduler.get_next_run() else "Not scheduled"
+  }
 
 [bold cyan]Last Sync[/bold cyan]
   Status: {last_job.status.value if last_job else "No syncs yet"}
-  Time: {last_job.started_at.strftime("%Y-%m-%d %H:%M") if last_job and last_job.started_at else "-"}
+  Time: {
+      last_job.started_at.strftime("%Y-%m-%d %H:%M")
+      if last_job and last_job.started_at else "-"
+  }
 """
 
     console.print(Panel(panel_content, title="RAG Indexer Status"))
@@ -425,14 +439,14 @@ def status():
 
 @scheduler_app.command("start")
 def scheduler_start(
-    cron: Optional[str] = typer.Option(None, "--cron", "-c", help="Cron expression"),
+    cron: str | None = typer.Option(None, "--cron", "-c", help="Cron expression"),
     foreground: bool = typer.Option(False, "--foreground", "-f", help="Run in foreground"),
 ):
     """Start the scheduler."""
     scheduler = get_scheduler(cron_expression=cron)
 
     scheduler.start()
-    console.print(f"[green]✓ Scheduler started.[/green]")
+    console.print("[green]✓ Scheduler started.[/green]")
     console.print(f"  Cron: {scheduler.cron_expression}")
 
     if foreground:
@@ -468,7 +482,8 @@ def scheduler_status():
         next_run = scheduler.get_next_run()
         console.print("[green]Scheduler is running.[/green]")
         console.print(f"  Cron: {scheduler.cron_expression}")
-        console.print(f"  Next run: {next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'}")
+        next_run_str = next_run.strftime('%Y-%m-%d %H:%M:%S') if next_run else 'N/A'
+        console.print(f"  Next run: {next_run_str}")
     else:
         console.print("[yellow]Scheduler is not running.[/yellow]")
 

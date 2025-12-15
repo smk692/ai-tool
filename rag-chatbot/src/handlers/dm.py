@@ -1,20 +1,124 @@
 """DM 이벤트 핸들러.
 
 사용자가 봇에게 직접 메시지를 보낼 때 질문을 처리합니다.
+스레드 기반 컨텍스트와 리액션 피드백을 지원합니다.
 """
 
-import asyncio
 import logging
 from typing import Any
 
-from slack_bolt import App, Say
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from slack_bolt import App
 
-from ..guardrails import mask_sensitive_info
-from ..models import Query
-from ..services import get_conversation_service, get_rag_service
+from ..utils import add_reaction_safe, remove_reaction_safe
+from .base import HandlerContext, MessageProcessor, build_handler_context
 
 logger = logging.getLogger(__name__)
+
+
+class DMProcessor(MessageProcessor):
+    """DM 메시지 처리기.
+
+    사용자가 봇에게 DM을 보내면 RAG 파이프라인을 통해 답변을 생성합니다.
+    리액션으로 처리 상태를 표시합니다.
+    """
+
+    def _get_channel_type(self) -> str:
+        """채널 타입 반환.
+
+        Returns:
+            "im" (DM은 항상 im)
+        """
+        return "im"
+
+    def _get_max_messages(self) -> int:
+        """최대 대화 메시지 수 반환.
+
+        Returns:
+            DM 대화 최대 메시지 수
+        """
+        return self.settings.dm_conversation_max_messages
+
+    def _get_log_prefix(self) -> str:
+        """로그 접두사 반환.
+
+        Returns:
+            "DM"
+        """
+        return "DM"
+
+    def _get_response_thread_ts(self, ctx: HandlerContext) -> str:
+        """응답을 보낼 스레드 타임스탬프 반환.
+
+        DM에서는 message_ts를 사용하여 스레드 응답합니다.
+
+        Args:
+            ctx: 핸들러 컨텍스트
+
+        Returns:
+            메시지 타임스탬프
+        """
+        return ctx.message_ts
+
+    def _on_start(self, ctx: HandlerContext) -> None:
+        """처리 시작 훅 - 눈 리액션 추가.
+
+        Args:
+            ctx: 핸들러 컨텍스트
+        """
+        add_reaction_safe(
+            client=ctx.client,
+            channel=ctx.channel_id,
+            timestamp=ctx.message_ts,
+            name=self.settings.reaction_processing,
+        )
+
+    def _on_success(self, ctx: HandlerContext) -> None:
+        """처리 성공 훅 - 리액션 교체 (눈 → 체크마크).
+
+        Args:
+            ctx: 핸들러 컨텍스트
+        """
+        remove_reaction_safe(
+            client=ctx.client,
+            channel=ctx.channel_id,
+            timestamp=ctx.message_ts,
+            name=self.settings.reaction_processing,
+        )
+        add_reaction_safe(
+            client=ctx.client,
+            channel=ctx.channel_id,
+            timestamp=ctx.message_ts,
+            name=self.settings.reaction_done,
+        )
+
+    def _on_error(self, ctx: HandlerContext, error: Exception) -> None:
+        """처리 실패 훅 - 처리 중 리액션 제거 후 에러 메시지 전송.
+
+        Args:
+            ctx: 핸들러 컨텍스트
+            error: 발생한 예외
+        """
+        remove_reaction_safe(
+            client=ctx.client,
+            channel=ctx.channel_id,
+            timestamp=ctx.message_ts,
+            name=self.settings.reaction_processing,
+        )
+        super()._on_error(ctx, error)
+
+    def _on_empty_message(self, ctx: HandlerContext) -> None:
+        """빈 메시지 처리 훅 - 리액션 제거 후 안내 메시지.
+
+        Args:
+            ctx: 핸들러 컨텍스트
+        """
+        remove_reaction_safe(
+            client=ctx.client,
+            channel=ctx.channel_id,
+            timestamp=ctx.message_ts,
+            name=self.settings.reaction_processing,
+        )
+        super()._on_empty_message(ctx)
 
 
 def register_dm_handlers(app: App) -> None:
@@ -23,16 +127,14 @@ def register_dm_handlers(app: App) -> None:
     Args:
         app: Slack Bolt App 인스턴스
     """
+    processor = DMProcessor()
 
     @app.event("message")
-    def handle_dm(
-        body: dict[str, Any],
-        say: Say,
-        client: Any,
-    ) -> None:
+    def handle_dm(body: dict[str, Any], say, client) -> None:
         """DM 이벤트 처리.
 
         사용자가 봇에게 DM을 보내면 RAG 파이프라인을 통해 답변을 생성합니다.
+        스레드 단위로 컨텍스트를 유지하고, 리액션으로 처리 상태를 표시합니다.
 
         Args:
             body: 이벤트 페이로드
@@ -53,110 +155,5 @@ def register_dm_handlers(app: App) -> None:
         if event.get("subtype"):
             return
 
-        try:
-            # DM에서는 채널 ID를 스레드 식별자로 사용
-            dm_thread_ts = event.get("channel", "")
-            message_ts = event.get("ts", "")
-
-            # Query 객체 생성
-            query = Query.from_slack_event(
-                text=event.get("text", ""),
-                user=event.get("user", ""),
-                channel=event.get("channel", ""),
-                ts=message_ts,
-                thread_ts=None,  # DM은 스레드 없음
-                channel_type="im",
-            )
-
-            # 민감 정보 확인 로깅
-            masked_text = mask_sensitive_info(query.text)
-            logger.info(
-                f"DM 수신 - 채널: {query.channel_id}, "
-                f"질문: {masked_text[:100]}..."
-            )
-
-            # 빈 질문 체크
-            if not query.text.strip():
-                say(text="질문 내용을 입력해 주세요. 예: API 문서 어디서 볼 수 있나요?")
-                return
-
-            # 대화 컨텍스트 로드 (DM은 채널 ID를 스레드 ID로 사용)
-            conversation_service = get_conversation_service()
-            conversation_context = conversation_service.get_context_summary(
-                thread_ts=dm_thread_ts,
-                channel_id=query.channel_id,
-            )
-
-            # 사용자 질문 저장
-            conversation_service.add_message(
-                thread_ts=dm_thread_ts,
-                channel_id=query.channel_id,
-                role="user",
-                content=query.text,
-                message_ts=message_ts,
-            )
-
-            # RAG 서비스 호출 (비동기 → 동기 변환)
-            rag_service = get_rag_service()
-            response = asyncio.run(
-                rag_service.answer(query, conversation_context=conversation_context)
-            )
-
-            # 답변 전송 (DM은 스레드 없이 직접 전송)
-            _send_dm_response(
-                say=say,
-                text=response.format_for_slack(),
-            )
-
-            # 어시스턴트 답변 저장
-            conversation_service.add_message(
-                thread_ts=dm_thread_ts,
-                channel_id=query.channel_id,
-                role="assistant",
-                content=response.text,
-                message_ts=message_ts,
-            )
-
-            logger.info(
-                f"DM 답변 완료 - 채널: {query.channel_id}, "
-                f"토큰: {response.tokens_used}, "
-                f"시간: {response.generation_time_ms}ms"
-            )
-
-        except Exception as e:
-            logger.error(f"DM 처리 실패: {e}", exc_info=True)
-            _send_dm_error_response(say)
-
-
-@retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    retry=retry_if_exception_type(Exception),
-)
-def _send_dm_response(
-    say: Say,
-    text: str,
-) -> None:
-    """DM 응답 전송 (재시도 로직 포함).
-
-    Args:
-        say: Slack 메시지 전송 함수
-        text: 전송할 텍스트
-    """
-    say(text=text)
-
-
-def _send_dm_error_response(say: Say) -> None:
-    """DM 에러 응답 전송.
-
-    Args:
-        say: Slack 메시지 전송 함수
-    """
-    error_message = (
-        "죄송합니다, 답변 생성 중 오류가 발생했습니다.\n"
-        "잠시 후 다시 시도해 주세요."
-    )
-    try:
-        say(text=error_message)
-    except Exception as e:
-        logger.error(f"DM 에러 응답 전송 실패: {e}")
+        ctx = build_handler_context(body, say, client)
+        processor.process(ctx)

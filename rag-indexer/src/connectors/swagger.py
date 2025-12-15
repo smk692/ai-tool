@@ -6,7 +6,6 @@ OpenAPI 명세를 파싱하고 엔드포인트를 문서로 변환합니다.
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Optional
 from urllib.parse import urljoin
 
 import httpx
@@ -105,7 +104,7 @@ class SwaggerConnector:
     def fetch_documents(
         self,
         source: Source,
-        existing_docs: Optional[list[Document]] = None,
+        existing_docs: list[Document] | None = None,
     ) -> tuple[list[Document], list[Document], list[str]]:
         """Swagger 소스에서 모든 문서를 가져옵니다.
 
@@ -428,7 +427,7 @@ class SwaggerConnector:
             })
         return result
 
-    def _parse_request_body(self, request_body: Optional[dict], spec: dict) -> Optional[dict]:
+    def _parse_request_body(self, request_body: dict | None, spec: dict) -> dict | None:
         """요청 본문을 파싱합니다 (OpenAPI 3.x).
 
         Swagger 2.0에서는 body 파라미터가 사용되고,

@@ -85,24 +85,39 @@ def preload_services() -> None:
 
     임베딩 모델과 벡터 DB 연결을 앱 시작 시 미리 초기화합니다.
     """
+    import time
+
+    total_start = time.time()
+    logger.info("=" * 50)
     logger.info("서비스 사전 로드 시작...")
+    logger.info("=" * 50)
 
-    # RAG 서비스 초기화 (임베딩 모델 로드 포함)
+    # RAG 서비스 초기화
+    logger.info("[1/3] RAG 서비스 초기화 중...")
+    start = time.time()
     rag_service = get_rag_service()
+    logger.info(f"[1/3] RAG 서비스 초기화 완료 ({time.time() - start:.2f}초)")
 
-    # 임베딩 모델 워밍업 (모델 다운로드 및 로드)
-    logger.info("임베딩 모델 로드 중...")
+    # 임베딩 모델 워밍업 (모델 로드 - 가장 오래 걸림)
+    logger.info("[2/3] 임베딩 모델 로드 중...")
+    logger.info("      ⏳ 모델: intfloat/multilingual-e5-large-instruct (2.2GB)")
+    logger.info("      💡 팁: 'make download-model'로 미리 다운로드하면 빨라집니다")
+    start = time.time()
     _ = rag_service._embedding_model.embed_query("warmup query")
+    logger.info(f"[2/3] 임베딩 모델 로드 완료 ({time.time() - start:.2f}초)")
 
     # 벡터 DB 연결 확인
-    logger.info("벡터 DB 연결 확인 중...")
+    logger.info("[3/3] 벡터 DB 연결 확인 중...")
+    start = time.time()
     try:
         _ = rag_service._vector_store.client.get_collections()
-        logger.info("벡터 DB 연결 성공")
+        logger.info(f"[3/3] 벡터 DB 연결 성공 ({time.time() - start:.2f}초)")
     except Exception as e:
-        logger.warning(f"벡터 DB 연결 실패 (계속 진행): {e}")
+        logger.warning(f"[3/3] 벡터 DB 연결 실패 (계속 진행): {e}")
 
-    logger.info("서비스 사전 로드 완료")
+    logger.info("=" * 50)
+    logger.info(f"서비스 사전 로드 완료 (총 {time.time() - total_start:.2f}초)")
+    logger.info("=" * 50)
 
 
 def main() -> None:

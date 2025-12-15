@@ -22,7 +22,6 @@
 """
 
 from pathlib import Path
-from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -43,7 +42,7 @@ class QdrantSettings(BaseSettings):
     host: str = Field(default="localhost", alias="QDRANT_HOST")
     port: int = Field(default=6333, alias="QDRANT_PORT")
     collection_name: str = Field(default="rag_documents", alias="QDRANT_COLLECTION")
-    api_key: Optional[str] = Field(default=None, alias="QDRANT_API_KEY")
+    api_key: str | None = Field(default=None, alias="QDRANT_API_KEY")
 
     model_config = {"env_prefix": "", "extra": "ignore"}
 

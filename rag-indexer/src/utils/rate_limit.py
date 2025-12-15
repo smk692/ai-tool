@@ -12,8 +12,7 @@ API 호출에 대한 토큰 버킷 Rate Limiter를 제공합니다.
 import asyncio
 import threading
 import time
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass

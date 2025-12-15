@@ -76,7 +76,7 @@ QDRANT_HOST=localhost
 QDRANT_PORT=6333
 
 # Notion API (Notion 소스 사용 시)
-NOTION_API_KEY=your_notion_api_key
+NOTION_MCP_ENABLED=true
 
 # Embedding Model (선택, 기본값 사용 가능)
 EMBEDDING_MODEL=intfloat/multilingual-e5-large-instruct

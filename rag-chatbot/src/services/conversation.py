@@ -98,6 +98,7 @@ class ConversationService:
         role: Literal["user", "assistant"],
         content: str,
         message_ts: str,
+        max_messages: int | None = None,
     ) -> Conversation:
         """대화에 메시지 추가.
 
@@ -107,6 +108,7 @@ class ConversationService:
             role: 메시지 역할 (user/assistant)
             content: 메시지 내용
             message_ts: 메시지 타임스탬프
+            max_messages: 최대 메시지 수 (None이면 기본값 사용)
 
         Returns:
             업데이트된 대화 기록
@@ -117,7 +119,7 @@ class ConversationService:
             role=role,
             content=content,
             ts=message_ts,
-            max_messages=self.settings.conversation_max_messages,
+            max_messages=max_messages or self.settings.conversation_max_messages,
         )
 
         self.save_conversation(conversation)

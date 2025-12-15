@@ -14,7 +14,6 @@ Phase 1.2 기능으로, AI 메타데이터를 통해 검색 품질을 개선합�
 
 import hashlib
 import json
-from typing import Optional
 
 import structlog
 from pydantic import BaseModel, Field
@@ -118,8 +117,8 @@ class AIExtractor:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        model: Optional[str] = None,
+        api_key: str | None = None,
+        model: str | None = None,
         max_tokens: int = 1024,
         timeout: float = 30.0,
         cache_enabled: bool = True,
@@ -331,10 +330,10 @@ class AIExtractor:
 
 
 # 모듈 레벨 싱글톤 인스턴스
-_ai_extractor: Optional[AIExtractor] = None
+_ai_extractor: AIExtractor | None = None
 
 
-def get_ai_extractor() -> Optional[AIExtractor]:
+def get_ai_extractor() -> AIExtractor | None:
     """AI 추출기 인스턴스를 가져옵니다 (활성화된 경우).
 
     settings에서 AI 추출 기능이 활성화되어 있고,

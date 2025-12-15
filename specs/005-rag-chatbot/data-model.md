@@ -21,6 +21,7 @@
 | `message_ts` | `str` | ✅ | 메시지 타임스탬프 (고유 식별자) |
 | `is_dm` | `bool` | ✅ | DM 여부 |
 | `created_at` | `datetime` | ✅ | 질문 수신 시간 (UTC) |
+| `files` | `list[SlackFileInfo]` | ❌ | 첨부 파일 목록 (이미지 등) |
 
 ### Validation Rules
 
@@ -36,6 +37,14 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 import re
 
+class SlackFileInfo(BaseModel):
+    """Slack 첨부 파일 정보"""
+    id: str
+    name: str
+    mimetype: str
+    url_private: str
+    size: int  # bytes
+
 class Query(BaseModel):
     """사용자 질문 모델"""
     text: str = Field(..., min_length=1, max_length=4000)
@@ -45,6 +54,7 @@ class Query(BaseModel):
     message_ts: str = Field(..., pattern=r"^\d+\.\d+$")
     is_dm: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    files: list[SlackFileInfo] = Field(default_factory=list)
 
     @field_validator("text")
     @classmethod
@@ -317,13 +327,118 @@ class Feedback(BaseModel):
 
 ---
 
+## 6. ImageContent (이미지 콘텐츠)
+
+Claude Vision API에 전달할 이미지 데이터를 나타냅니다.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `media_type` | `str` | ✅ | 이미지 MIME 타입 (image/jpeg, image/png, image/gif, image/webp) |
+| `data` | `str` | ✅ | Base64 인코딩된 이미지 데이터 |
+| `filename` | `str` | ❌ | 원본 파일명 |
+| `size_bytes` | `int` | ❌ | 원본 파일 크기 (bytes) |
+
+### Validation Rules
+
+- `media_type`: `image/jpeg` | `image/png` | `image/gif` | `image/webp` 중 하나
+- `data`: 비어있지 않은 Base64 문자열
+- `size_bytes`: 20MB (20,971,520 bytes) 이하
+
+### Supported MIME Types
+
+| MIME Type | Extension |
+|-----------|-----------|
+| `image/jpeg` | .jpg, .jpeg |
+| `image/png` | .png |
+| `image/gif` | .gif |
+| `image/webp` | .webp |
+
+### Pydantic Model
+
+```python
+from typing import Literal
+from pydantic import BaseModel, Field
+
+class ImageContent(BaseModel):
+    """Claude Vision API용 이미지 콘텐츠 모델"""
+    media_type: Literal["image/jpeg", "image/png", "image/gif", "image/webp"]
+    data: str = Field(..., min_length=1)  # Base64 인코딩 데이터
+    filename: str | None = None
+    size_bytes: int | None = Field(None, le=20_971_520)  # 최대 20MB
+
+    def to_claude_format(self) -> dict:
+        """Claude API ImageBlock 형식으로 변환"""
+        return {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": self.media_type,
+                "data": self.data,
+            },
+        }
+```
+
+---
+
+## 7. SlackFileInfo (Slack 파일 정보)
+
+Slack 메시지에 첨부된 파일 정보를 나타냅니다.
+
+### Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `str` | ✅ | Slack 파일 고유 ID |
+| `name` | `str` | ✅ | 파일명 |
+| `mimetype` | `str` | ✅ | MIME 타입 |
+| `url_private` | `str` | ✅ | 다운로드 URL (인증 필요) |
+| `size` | `int` | ✅ | 파일 크기 (bytes) |
+
+### Validation Rules
+
+- `id`: 비어있지 않음
+- `size`: 20MB 이하
+- `mimetype`: 이미지 처리 시 지원 타입 확인
+
+### Pydantic Model
+
+```python
+from pydantic import BaseModel, Field
+
+class SlackFileInfo(BaseModel):
+    """Slack 첨부 파일 정보"""
+    id: str = Field(..., min_length=1)
+    name: str
+    mimetype: str
+    url_private: str
+    size: int = Field(..., le=20_971_520)  # 최대 20MB
+
+    @property
+    def is_image(self) -> bool:
+        """이미지 파일 여부"""
+        return self.mimetype.startswith("image/")
+
+    @property
+    def is_supported_image(self) -> bool:
+        """지원되는 이미지 형식 여부"""
+        supported = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+        return self.mimetype in supported
+```
+
+---
+
 ## Entity Relationships
 
 ```
 Query (1) -----> (N) SearchResult
   |                      |
+  |                      v
+  +-----> (N) SlackFileInfo -----> ImageContent (변환)
+  |                      |
   v                      v
-Response (1) <---- uses for context
+Response (1) <---- uses for context (text + images)
   |
   v
 Conversation (1) -----> (N) ConversationMessage
@@ -335,9 +450,11 @@ Feedback (1) <---- references Question + Answer
 ### Relationship Details
 
 1. **Query → SearchResult**: 하나의 질문에 대해 여러 검색 결과 반환 (top_k=5)
-2. **Query + SearchResult → Response**: 질문과 검색 결과를 컨텍스트로 답변 생성
-3. **Conversation → ConversationMessage**: 스레드 내 최대 5개 메시지 유지
-4. **Response → Feedback**: 답변에 대한 사용자 피드백 수집
+2. **Query → SlackFileInfo**: 하나의 질문에 여러 첨부 파일 가능 (최대 5개 이미지)
+3. **SlackFileInfo → ImageContent**: Slack 파일을 Claude Vision API 형식으로 변환
+4. **Query + SearchResult + ImageContent → Response**: 질문, 검색 결과, 이미지를 컨텍스트로 답변 생성
+5. **Conversation → ConversationMessage**: 스레드 내 최대 5개 메시지 유지
+6. **Response → Feedback**: 답변에 대한 사용자 피드백 수집
 
 ---
 
@@ -354,8 +471,10 @@ Feedback (1) <---- references Question + Answer
 
 | Entity | Key Validations |
 |--------|-----------------|
-| Query | 텍스트 길이, Slack ID 형식, 타임스탬프 형식 |
+| Query | 텍스트 길이, Slack ID 형식, 타임스탬프 형식, 첨부 파일 목록 |
 | SearchResult | 유사도 점수 범위, 소스 타입 enum |
 | Response | 텍스트 길이 (Slack 제한), 토큰 수 |
 | Conversation | 메시지 최대 5개, TTL 관리 |
 | Feedback | 리액션 매핑, rating enum |
+| ImageContent | MIME 타입 enum, Base64 데이터 존재, 크기 제한 (20MB) |
+| SlackFileInfo | 파일 ID 존재, 크기 제한 (20MB), 지원 이미지 형식 검증 |
