@@ -3,6 +3,7 @@
 RAG Chatbot에서 사용하는 모든 Pydantic 모델을 제공합니다.
 """
 
+from .attachment import ImageContent, SlackFileInfo
 from .conversation import Conversation, ConversationMessage
 from .feedback import Feedback
 from .query import Query
@@ -17,4 +18,6 @@ __all__ = [
     "ConversationMessage",
     "Conversation",
     "Feedback",
+    "ImageContent",
+    "SlackFileInfo",
 ]

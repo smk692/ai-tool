@@ -6,7 +6,6 @@
 import re
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -96,7 +95,7 @@ class Chunk(BaseModel):
         default=0,
         description="대략적인 토큰 수",
     )
-    embedding: Optional[list[float]] = Field(
+    embedding: list[float] | None = Field(
         default=None,
         description="임베딩 벡터 (1024 차원)",
     )
@@ -113,7 +112,7 @@ class Chunk(BaseModel):
         default=ChunkType.STANDARD,
         description="청크 유형: standard, parent, child",
     )
-    parent_id: Optional[str] = Field(
+    parent_id: str | None = Field(
         default=None,
         description="부모 청크 ID (child 청크만 해당)",
     )
@@ -123,8 +122,8 @@ class Chunk(BaseModel):
         source_id: str,
         source_type: str,
         title: str,
-        url: Optional[str] = None,
-        document_metadata: Optional[dict] = None,
+        url: str | None = None,
+        document_metadata: dict | None = None,
     ) -> dict:
         """향상된 메타데이터와 함께 Qdrant 포인트 포맷으로 변환.
 

@@ -4,7 +4,6 @@ Uses intfloat/multilingual-e5-large-instruct model (1024 dimensions).
 Supports instruction prefixes for optimal retrieval performance.
 """
 
-from typing import Optional
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -22,8 +21,8 @@ class EmbeddingModel:
 
     def __init__(
         self,
-        model_name: Optional[str] = None,
-        device: Optional[str] = None,
+        model_name: str | None = None,
+        device: str | None = None,
     ):
         """Initialize embedding model.
 
@@ -32,7 +31,7 @@ class EmbeddingModel:
             device: Device to use ('cpu', 'cuda', 'mps'). Auto-detected if None.
         """
         self.model_name = model_name or self.DEFAULT_MODEL
-        self._model: Optional[SentenceTransformer] = None
+        self._model: SentenceTransformer | None = None
         self._device = device
 
     @property
@@ -131,12 +130,12 @@ class EmbeddingModel:
 
 
 # Default model instance (lazy-loaded)
-_default_model: Optional[EmbeddingModel] = None
+_default_model: EmbeddingModel | None = None
 
 
 def get_embedding_model(
-    model_name: Optional[str] = None,
-    device: Optional[str] = None,
+    model_name: str | None = None,
+    device: str | None = None,
 ) -> EmbeddingModel:
     """Get embedding model instance.
 

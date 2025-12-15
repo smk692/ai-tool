@@ -4,7 +4,6 @@
 """
 
 from datetime import UTC, datetime
-from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -49,7 +48,7 @@ class Document(BaseModel):
         default="",
         description="전체 문서 내용 텍스트",
     )
-    url: Optional[str] = Field(
+    url: str | None = Field(
         default=None,
         description="원본 문서 URL",
     )
@@ -69,7 +68,7 @@ class Document(BaseModel):
         default_factory=lambda: datetime.now(UTC),
         description="마지막 업데이트 타임스탬프",
     )
-    indexed_at: Optional[datetime] = Field(
+    indexed_at: datetime | None = Field(
         default=None,
         description="벡터DB에 인덱싱된 시간",
     )

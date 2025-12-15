@@ -8,7 +8,6 @@
     - 지연 로딩을 통한 모델 초기화 최적화
 """
 
-from typing import Optional
 
 from shared import EmbeddingModel, get_embedding_model
 
@@ -45,7 +44,7 @@ class Embedder:
         """
         self.model_name = model_name
         self.batch_size = batch_size
-        self._model: Optional[EmbeddingModel] = None
+        self._model: EmbeddingModel | None = None
 
     @property
     def model(self) -> EmbeddingModel:
@@ -122,7 +121,7 @@ class Embedder:
 
 
 # 모듈 레벨 싱글톤 인스턴스
-_embedder: Optional[Embedder] = None
+_embedder: Embedder | None = None
 
 
 def get_embedder(

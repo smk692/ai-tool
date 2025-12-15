@@ -1,350 +1,218 @@
-# AI Assistant - Claude Code + Hugging Face Embeddings
+# AI Tool - RAG 시스템
 
-한국어 지원 AI 어시스턴트 시스템 (OpenAI → Anthropic Claude Code 마이그레이션)
+문서 인덱싱 및 Slack RAG 챗봇 서비스
 
-## 주요 기능
+## 개요
 
-- **Intent Classification**: 쿼리 유형 자동 분류 (Text-to-SQL, Knowledge Discovery, General Chat)
-- **Text-to-SQL**: 한국어 자연어를 PostgreSQL 쿼리로 변환
-- **RAG-based Knowledge Discovery**: ChromaDB 벡터 검색으로 문서 기반 질의응답
-- **Multilingual Embeddings**: Hugging Face 모델로 50+ 언어 지원 (한국어 최적화)
-- **Multi-turn Conversations**: 세션 기반 대화 히스토리 관리
-- **Token Usage Tracking**: API 사용량 추적 및 예산 모니터링
+Notion 문서와 Swagger API 스펙을 벡터 데이터베이스에 색인화하고, Slack을 통해 RAG 기반 질의응답을 제공하는 시스템입니다.
 
 ## 기술 스택
 
-- **LLM**: Anthropic Claude 3.5 Sonnet (langchain-anthropic)
-- **Embeddings**: Hugging Face sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2, 384 dimensions)
-- **Vector Store**: ChromaDB (문서 임베딩 및 검색)
-- **Database**: PostgreSQL (읽기 전용 분석), SQLite (대화 메모리)
-- **Framework**: LangChain (체인 오케스트레이션)
-- **Language**: Python 3.10+
+| 분류 | 기술 |
+|------|------|
+| Language | Python 3.10+ |
+| Vector DB | Qdrant |
+| Cache | Redis |
+| Embeddings | HuggingFace sentence-transformers |
+| LLM | Anthropic Claude API |
+| Bot Framework | Slack Bolt |
 
 ## 프로젝트 구조
 
 ```
 ai-tool/
-├── config/                  # 설정 파일
-│   ├── settings.py         # Pydantic 설정 관리
-│   └── .env.example        # 환경 변수 예제
-├── src/
-│   ├── chains/             # LangChain 체인
-│   │   ├── router.py       # Intent classification
-│   │   ├── text_to_sql.py  # SQL 생성
-│   │   ├── knowledge.py    # RAG 검색
-│   │   └── multi_turn.py   # 대화 관리
-│   ├── models/             # 데이터 모델
-│   │   ├── llm_config.py   # LLM 설정
-│   │   └── query_response.py # 요청/응답
-│   ├── services/           # 핵심 서비스
-│   │   ├── llm_client.py   # Claude API 클라이언트
-│   │   ├── embedding.py    # Hugging Face 임베딩
-│   │   └── memory.py       # SQLite 메모리
-│   └── utils/              # 유틸리티
-│       ├── prompts.py      # 프롬프트 템플릿
-│       ├── logging.py      # 로깅
-│       └── errors.py       # 커스텀 예외
-├── scripts/                # 실행 스크립트
-│   ├── test_claude_connection.py
-│   └── init_vector_store.py
-└── tests/                  # 테스트
-    ├── fixtures/           # 테스트 데이터
-    └── unit/              # 단위 테스트
+├── rag-indexer/          # 문서 인덱싱 서비스
+│   ├── src/
+│   │   ├── cli.py        # CLI 인터페이스
+│   │   ├── config.py     # 설정 관리
+│   │   ├── connectors/   # Notion, Swagger 커넥터
+│   │   ├── models/       # 데이터 모델
+│   │   ├── services/     # 핵심 서비스
+│   │   └── scheduler/    # 자동 동기화 스케줄러
+│   └── tests/
+├── rag-chatbot/          # Slack RAG 챗봇 서비스
+│   ├── src/
+│   │   ├── main.py       # 봇 엔트리포인트
+│   │   ├── config.py     # 설정 관리
+│   │   ├── handlers/     # Slack 이벤트 핸들러
+│   │   ├── services/     # 검색, 컨텍스트 서비스
+│   │   ├── llm/          # Claude LLM 클라이언트
+│   │   ├── guardrails/   # 민감 정보 탐지
+│   │   └── models/       # 데이터 모델
+│   └── tests/
+├── shared/               # 공통 모듈
+│   └── shared/
+│       ├── embedding.py  # HuggingFace 임베딩 클라이언트
+│       └── vector_store.py # Qdrant 벡터 스토어
+├── infra/docker/         # Docker 인프라
+│   ├── docker-compose.yml
+│   └── .env.example
+├── specs/                # Feature 명세 (SpecKit)
+├── scripts/              # 유틸리티 스크립트
+└── Makefile
 ```
 
-## 설치 및 설정
+## 빠른 시작
 
-### 1. 의존성 설치
+### 1. 환경 변수 설정
 
 ```bash
-# Python 가상환경 생성 (권장)
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 패키지 설치
-pip install -r requirements.txt
+cd infra/docker
+cp .env.example .env
+# .env 파일에 API 키 설정
 ```
 
-### 2. 환경 변수 설정
+### 2. 전체 설정 (권장)
 
 ```bash
-# .env 파일 생성
-cp config/.env.example .env
-
-# .env 파일 수정
-# === LLM Configuration ===
-ANTHROPIC_API_KEY=sk-ant-YOUR-ACTUAL-API-KEY
-
-# === Database Configuration ===
-POSTGRES_HOST=your-db-host
-POSTGRES_PORT=5432
-POSTGRES_DB=your_database
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-
-# === Vector Store Configuration ===
-CHROMA_PERSIST_DIRECTORY=./data/chroma
-CHROMA_COLLECTION_NAME=documents
-
-# === Embedding Configuration ===
-EMBEDDING_MODEL_NAME=paraphrase-multilingual-MiniLM-L12-v2
-EMBEDDING_DEVICE=cpu  # 또는 cuda (GPU 사용 시)
+make setup
 ```
 
-### 3. Claude API 연결 테스트
+이 명령어는 다음을 자동 수행합니다:
+- 환경 변수 파일 생성
+- 모든 의존성 설치
+- Docker 인프라 시작 (Qdrant, Redis)
+- 헬스체크
+
+### 3. 개별 서비스 설정
 
 ```bash
-python scripts/test_claude_connection.py
+# rag-indexer 설정
+make setup-indexer
+
+# rag-chatbot 설정
+make setup-chatbot
 ```
 
-**예상 출력:**
-```
-============================================================
-Claude API Connection Test
-============================================================
-✅ API Key found: sk-ant-***...
-✅ LLM connection test passed
+## 서비스 실행
 
-Testing Korean support...
-Query: 안녕하세요! 오늘 날씨는 어떤가요?
-Response: [Claude의 한국어 응답]
-Token Usage: Input=20, Output=35, Total=55
-```
-
-### 4. 벡터 저장소 초기화
+### Slack 챗봇 실행
 
 ```bash
-python scripts/init_vector_store.py
+# 포그라운드 실행
+make run-chatbot
+
+# 백그라운드 실행
+make run-chatbot-bg
+
+# 중지
+make stop-chatbot
 ```
 
-이 스크립트는 ChromaDB를 초기화하고 샘플 문서를 임베딩합니다.
-
-## 사용 예제
-
-### Intent Classification (Router Chain)
-
-```python
-from src.chains.router import RouterChain
-from src.services.llm_client import LLMClient
-from src.models.query_response import QueryRequest, QueryType
-
-llm_client = LLMClient()
-router = RouterChain(llm_client)
-
-# Text-to-SQL 쿼리
-query = QueryRequest(
-    user_id="user123",
-    query_text="지난달 신규 가입자 수는?"
-)
-query_type = router.classify(query)
-print(query_type)  # QueryType.TEXT_TO_SQL
-
-# Knowledge 쿼리
-query = QueryRequest(
-    user_id="user123",
-    query_text="회원가입 절차가 어떻게 되나요?"
-)
-query_type = router.classify(query)
-print(query_type)  # QueryType.KNOWLEDGE
-
-# General Assistant 쿼리
-query = QueryRequest(
-    user_id="user123",
-    query_text="안녕하세요"
-)
-query_type = router.classify(query)
-print(query_type)  # QueryType.ASSISTANT
-```
-
-### Text-to-SQL Chain
-
-```python
-from src.chains.text_to_sql import TextToSQLChain
-from src.services.llm_client import LLMClient
-from src.models.query_response import QueryRequest
-
-llm_client = LLMClient()
-text_to_sql = TextToSQLChain(llm_client)
-
-query = QueryRequest(
-    user_id="user123",
-    query_text="지난 7일간 일별 신규 가입자 수를 조회해주세요"
-)
-
-response = text_to_sql.generate_sql(query)
-print(response.sql_query)
-# SELECT DATE(created_at) as date, COUNT(*) as new_users
-# FROM users
-# WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
-# GROUP BY DATE(created_at)
-# ORDER BY date DESC;
-
-print(f"Confidence: {response.confidence_score}")
-print(f"Token Usage: {response.token_usage.total_tokens}")
-```
-
-### Knowledge Discovery Chain
-
-```python
-from src.chains.knowledge import KnowledgeChain
-from src.services.llm_client import LLMClient
-from src.services.embedding import HuggingFaceEmbedding
-from src.models.query_response import QueryRequest
-
-llm_client = LLMClient()
-embedding_service = HuggingFaceEmbedding()
-knowledge_chain = KnowledgeChain(llm_client, embedding_service)
-
-query = QueryRequest(
-    user_id="user123",
-    query_text="회원가입할 때 이메일 인증이 필요한가요?"
-)
-
-response = knowledge_chain.search(query, top_k=3)
-print(response.answer)
-# 네, 회원가입 시 이메일 인증이 필요합니다.
-# 절차는 다음과 같습니다:
-# 1. 이메일 주소 입력
-# 2. 비밀번호 설정
-# 3. 이메일 인증 (이 단계에서 인증 메일 확인)
-# ...
-
-print(f"Source Documents: {len(response.source_documents)}")
-for doc in response.source_documents:
-    print(f"- {doc.title} (relevance: {doc.relevance_score:.2f})")
-```
-
-### Multi-turn Conversation
-
-```python
-from src.chains.multi_turn import MultiTurnChain
-from src.services.llm_client import LLMClient
-from src.services.memory import SQLiteConversationMemory
-from src.models.query_response import QueryRequest
-
-llm_client = LLMClient()
-memory = SQLiteConversationMemory()
-chat = MultiTurnChain(llm_client, memory)
-
-session_id = "session123"
-
-# 첫 번째 대화
-query1 = QueryRequest(
-    user_id="user123",
-    session_id=session_id,
-    query_text="안녕하세요!"
-)
-response1 = chat.chat(query1)
-print(response1.answer)
-# 안녕하세요! 무엇을 도와드릴까요?
-
-# 두 번째 대화 (히스토리 참조)
-query2 = QueryRequest(
-    user_id="user123",
-    session_id=session_id,
-    query_text="주문 내역을 확인하고 싶어요"
-)
-response2 = chat.chat(query2)
-print(response2.answer)
-# 주문 내역 확인을 도와드리겠습니다.
-# 어떤 기간의 주문 내역을 확인하시겠어요?
-
-# 대화 히스토리 조회
-history = memory.get_conversation_history(session_id, limit=10)
-for turn in history:
-    print(f"User: {turn['user_message']}")
-    print(f"Assistant: {turn['assistant_message']}")
-```
-
-## 테스트 실행
+### 문서 인덱싱
 
 ```bash
-# 전체 테스트 실행
-pytest
+# CLI 도움말
+make run-indexer
 
-# 특정 테스트 파일 실행
-pytest tests/unit/test_llm_client.py
+# Notion 문서 인덱싱
+cd rag-indexer
+python -m src.cli index-notion --database-id <DB_ID>
 
-# Coverage 리포트
-pytest --cov=src --cov-report=html
+# Swagger 인덱싱
+python -m src.cli index-swagger --url <SWAGGER_URL>
+
+# 스케줄러 실행 (자동 동기화)
+python -m src.cli scheduler
 ```
 
-## 성능 벤치마크
+## 주요 명령어
 
-### Embedding Performance
-- **Model**: paraphrase-multilingual-MiniLM-L12-v2
-- **Top-5 Accuracy**: 92.0% (Korean queries)
-- **Search Latency**: ~0.32s (p95, target: ≤0.5s)
-- **Cross-language Similarity**: Korean↔English 0.971, Korean↔Japanese 0.982
+```bash
+# 인프라
+make infra-up          # Qdrant + Redis 시작
+make infra-down        # 인프라 중지
+make infra-status      # 상태 확인
+make health            # 헬스체크
 
-### Claude 3.5 Sonnet Pricing
-- **Input**: $3 / 1M tokens
-- **Output**: $15 / 1M tokens
+# 테스트
+make test              # 전체 테스트
+make test-cov          # 커버리지 포함
 
-### 예상 토큰 사용량
-- **Intent Classification**: ~50 tokens/query
-- **Text-to-SQL**: ~200-500 tokens/query
-- **Knowledge Discovery**: ~500-1000 tokens/query (문서 길이에 따라)
-- **Multi-turn Chat**: ~100-300 tokens/turn (히스토리에 따라)
+# 코드 품질
+make lint              # 린트 검사
+make lint-fix          # 자동 수정
+make format            # 코드 포맷팅
 
-### 임베딩 성능
-- **Model**: paraphrase-multilingual-MiniLM-L12-v2
-- **Dimensions**: 384
-- **Speed**: ~1000 sentences/sec (CPU), ~10000 sentences/sec (GPU)
-- **Cost**: Free (로컬 실행)
-
-## 문제 해결
-
-### API 인증 오류
+# 정리
+make clean-cache       # 캐시 삭제
+make clean-all         # 전체 정리
 ```
-AuthenticationError: Invalid Anthropic API key
+
+## 환경 변수
+
+| 변수 | 설명 | 필수 |
+|------|------|------|
+| `QDRANT_HOST` | Qdrant 호스트 | ✅ |
+| `QDRANT_PORT` | Qdrant 포트 (기본: 6333) | ✅ |
+| `REDIS_HOST` | Redis 호스트 | ⬚ |
+| `REDIS_PORT` | Redis 포트 (기본: 6379) | ⬚ |
+| `NOTION_API_KEY` | Notion API 키 | ✅ (Notion 사용 시) |
+| `ANTHROPIC_API_KEY` | Claude API 키 | ✅ (챗봇 사용 시) |
+| `SLACK_BOT_TOKEN` | Slack Bot Token | ✅ (챗봇 사용 시) |
+| `SLACK_APP_TOKEN` | Slack App Token | ✅ (챗봇 사용 시) |
+| `EMBEDDING_MODEL` | 임베딩 모델 | ⬚ (기본값 있음) |
+| `IMAGE_PROCESSING_ENABLED` | 이미지 처리 활성화 | ⬚ (기본: true) |
+| `IMAGE_MAX_SIZE_MB` | 최대 이미지 크기 (MB) | ⬚ (기본: 20) |
+| `IMAGE_MAX_COUNT` | 요청당 최대 이미지 수 | ⬚ (기본: 5) |
+
+## 서비스 상세
+
+### rag-indexer
+
+문서 인덱싱 파이프라인:
+- **Notion 커넥터**: 페이지 및 데이터베이스 동기화
+- **Swagger 커넥터**: API 문서 파싱
+- **청킹**: LangChain 기반 텍스트 분할
+- **임베딩**: multilingual-e5-large-instruct (1024차원)
+- **스케줄러**: cron 기반 자동 동기화
+
+### rag-chatbot
+
+Slack RAG 챗봇:
+- **이벤트 처리**: 멘션, DM 응답 (MessageProcessor 패턴)
+- **벡터 검색**: Qdrant 유사 문서 검색
+- **LLM 응답**: Claude를 통한 답변 생성
+- **이미지 분석**: Slack 이미지 → Claude Vision API 분석
+- **컨텍스트 관리**: Redis 기반 대화 히스토리
+- **가드레일**: 민감 정보 탐지 및 필터링
+- **피드백**: 사용자 피드백 수집
+
+### shared
+
+공통 모듈:
+- `shared.embedding`: HuggingFace 임베딩 클라이언트
+- `shared.vector_store`: Qdrant 벡터 스토어 클라이언트
+
+## 개발
+
+### 테스트
+
+```bash
+# 단위 테스트
+cd rag-indexer && pytest tests/unit -v
+cd rag-chatbot && pytest tests/unit -v
+
+# 통합 테스트
+cd rag-indexer && pytest tests/integration -v
 ```
-**해결**: `.env` 파일의 `ANTHROPIC_API_KEY`가 올바른지 확인하세요.
 
-### 데이터베이스 연결 오류
+### 코드 스타일
+
+- Python 3.10+
+- PEP 8 준수
+- 타입 힌팅 필수
+- Ruff 린터/포매터
+
+## SpecKit 워크플로우
+
+새 기능 개발 시:
 ```
-DatabaseConnectionError: Could not connect to PostgreSQL
+/speckit.specify → /speckit.clarify → /speckit.plan → /speckit.tasks → /speckit.implement
 ```
-**해결**: PostgreSQL 연결 정보 (호스트, 포트, 사용자, 비밀번호)를 확인하세요.
 
-### 임베딩 모델 다운로드 실패
-```
-OSError: Can't load tokenizer for 'paraphrase-multilingual-MiniLM-L12-v2'
-```
-**해결**: 인터넷 연결을 확인하고 Hugging Face Hub에서 모델이 자동 다운로드될 때까지 기다립니다.
+자세한 사용법: `.specify/USAGE.md` 참조
 
-### ChromaDB 초기화 오류
-```
-ChromaDB collection not found
-```
-**해결**: `python scripts/init_vector_store.py`를 실행하여 벡터 저장소를 초기화하세요.
+## License
 
-## 개발 로드맵
-
-### ✅ User Story 1: Claude Code 마이그레이션 (완료)
-- OpenAI → Anthropic Claude 3.5 Sonnet 전환
-- Intent classification
-- Text-to-SQL, Knowledge, Multi-turn chains
-- 한국어 지원
-- 단위 테스트 (79.93% coverage)
-
-### ✅ User Story 2: Hugging Face 임베딩 통합 (완료)
-- HuggingFaceEmbedding 서비스 구현
-- ChromaDB 통합 및 문서 인덱싱
-- Top-5 정확도: 92.0% (목표: ≥90%)
-- 검색 지연시간: ~0.32s (목표: ≤0.5s)
-- 다국어 지원 검증 (Korean, English, Japanese, Chinese)
-- 포괄적인 문서화 (모델 사양, API 가이드, 트러블슈팅, FAQ)
-
-### 📋 User Story 3: 향후 계획
-- 하이브리드 검색 개선 (BM25 + Vector)
-- RAG 파이프라인 고도화
-- 프로덕션 배포 준비
-
-## 라이선스
-
-MIT License
-
-## 연락처
-
-프로젝트 관련 문의: [your-email@example.com]
+MIT

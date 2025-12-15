@@ -10,7 +10,6 @@ RecursiveCharacterTextSplitter를 사용하여 의미론적 청킹을 수행합�
 """
 
 import hashlib
-from typing import Optional
 from uuid import UUID
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -57,7 +56,7 @@ class Chunker:
         self,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
-        separators: Optional[list[str]] = None,
+        separators: list[str] | None = None,
     ):
         """청커를 초기화합니다.
 
@@ -199,7 +198,7 @@ class HierarchicalChunker:
         parent_chunk_overlap: int = DEFAULT_PARENT_OVERLAP,
         child_chunk_size: int = DEFAULT_CHILD_SIZE,
         child_chunk_overlap: int = DEFAULT_CHILD_OVERLAP,
-        separators: Optional[list[str]] = None,
+        separators: list[str] | None = None,
     ):
         """계층적 청커를 초기화합니다.
 
@@ -347,7 +346,7 @@ class HierarchicalChunker:
         self,
         child_chunk: Chunk,
         all_chunks: list[Chunk],
-    ) -> Optional[Chunk]:
+    ) -> Chunk | None:
         """주어진 자식 청크의 부모 청크를 찾습니다.
 
         Args:
@@ -390,8 +389,8 @@ class HierarchicalChunker:
 
 
 # 모듈 레벨 싱글톤 인스턴스
-_chunker: Optional[Chunker] = None
-_hierarchical_chunker: Optional[HierarchicalChunker] = None
+_chunker: Chunker | None = None
+_hierarchical_chunker: HierarchicalChunker | None = None
 
 
 def get_chunker(

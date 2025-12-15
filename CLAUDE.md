@@ -2,7 +2,7 @@
 
 RAG 시스템 - 문서 인덱싱 및 Slack 챗봇 서비스
 
-Last updated: 2025-12-10
+Last updated: 2025-12-12
 
 ## Active Technologies
 
@@ -56,11 +56,18 @@ ai-tool/
 ## Commands
 
 ```bash
+# 초기 설정
+make setup             # 전체 프로젝트 초기 설정 (가상환경 + 의존성 + 인프라)
+make setup-indexer     # rag-indexer 전용 가상환경 설정
+make setup-chatbot     # rag-chatbot 전용 가상환경 설정
+make download-model    # 임베딩 모델 사전 다운로드
+
 # Infrastructure
 make infra-up          # Start Qdrant + Redis
 make infra-down        # Stop infrastructure
 make infra-logs        # View logs
 make infra-status      # Check status
+make infra-reset       # 인프라 초기화 (볼륨 포함 삭제)
 
 # Installation
 make install-shared    # Install shared module
@@ -68,15 +75,30 @@ make install-indexer   # Install rag-indexer
 make install-chatbot   # Install rag-chatbot
 make install-all       # Install all
 
+# 실행
+make run-chatbot       # Slack 챗봇 실행
+make run-chatbot-bg    # Slack 챗봇 백그라운드 실행
+make stop-chatbot      # Slack 챗봇 중지
+make run-indexer       # Indexer CLI 도움말 표시
+
 # Testing
 make test-shared       # Test shared module
 make test-indexer      # Test rag-indexer
 make test-chatbot      # Test rag-chatbot
 make test              # Run all tests
+make test-cov          # 커버리지 포함 테스트
 
-# Linting
+# 코드 품질
 make lint              # Check code style
 make lint-fix          # Auto-fix lint issues
+make format            # 코드 포맷팅 (Ruff)
+make check             # 린트 + 테스트 전체 검사
+
+# 헬스체크 & 정리
+make health            # 서비스 헬스체크
+make clean-cache       # Python 캐시 파일 삭제
+make clean-venv        # 가상환경 삭제
+make clean-all         # 모든 생성 파일 삭제
 ```
 
 ## Code Style
@@ -99,11 +121,19 @@ make lint-fix          # Auto-fix lint issues
 ### rag-chatbot (005-rag-chatbot) ✅
 Slack RAG 챗봇 - 벡터DB 검색 및 Claude LLM을 통한 Slack 응답
 - Slack 이벤트 처리 (멘션, DM)
+- **이미지 분석 지원** (Slack 이미지 → Claude Vision API)
 - 벡터DB 유사 문서 검색
-- Claude LLM 답변 생성
+- Claude LLM 답변 생성 (Claude Agent SDK)
+- MCP 서버 연동 (Jira, Notion, Slack, Grafana, Sentry, AWS, Swagger)
+- MCP 체이닝 (응답 내 외부 링크 자동 추가 조회)
 - 대화 컨텍스트 유지 (Redis)
 - 출처 표시 및 피드백 수집
 - 가드레일 (민감 정보 탐지)
+
+#### 아키텍처 특징
+- **MessageProcessor 패턴**: DM/멘션 핸들러 공통 로직 추상화 (Template Method)
+- **ImageProcessor 서비스**: Slack 파일 다운로드 및 Base64 변환
+- **모듈화된 서비스**: RAGService, ConversationService, FeedbackService, ImageProcessor
 
 ### shared ✅
 공통 모듈 - rag-indexer와 rag-chatbot에서 공유
@@ -116,16 +146,17 @@ Slack RAG 챗봇 - 벡터DB 검색 및 Claude LLM을 통한 Slack 응답
 # Vector DB
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
+QDRANT_GRPC_PORT=6334
 
 # Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
 # Notion API
-NOTION_API_KEY=your_notion_api_key
+NOTION_API_KEY=your_notion_api_key_here
 
 # Anthropic Claude API
-ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Slack
 SLACK_BOT_TOKEN=xoxb-your-bot-token
@@ -134,6 +165,12 @@ SLACK_SIGNING_SECRET=your_signing_secret
 
 # Embedding Model
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Image Processing (선택적)
+IMAGE_PROCESSING_ENABLED=true
+IMAGE_MAX_SIZE_MB=20
+IMAGE_MAX_COUNT=5
+IMAGE_DOWNLOAD_TIMEOUT=30
 ```
 
 ## Quick Start
@@ -171,6 +208,11 @@ python -m src.main
 ```
 
 ## Recent Changes
+- 2025-12-12: 이미지 분석 기능 추가 (Slack 이미지 → Claude Vision API)
+- 2025-12-12: 핸들러 리팩토링 (MessageProcessor 패턴으로 DM/멘션 코드 통합)
+- 2025-12-12: MCP 체이닝 기능 추가 (응답 내 외부 링크 자동 추가 조회)
+- 2025-12-12: Makefile 개선 (setup, run-chatbot, health 등 명령어 추가)
+- 2025-12-12: CLAUDE.md 문서 현행화
 - 2025-12-10: 005-rag-chatbot 구현 완료 ✅
 - 2025-12-10: SpecKit USAGE.md 문서 추가
 - 2025-12-10: 프로젝트 구조 개편 완료

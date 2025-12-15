@@ -4,15 +4,14 @@
 """
 
 import logging
-import time
 from typing import Any
 
 from shared.embedding import get_embedding_model
 from shared.vector_store import get_vector_store
 
 from ..config import get_settings
-from ..llm import ClaudeClient, build_rag_prompt, truncate_context
-from ..models import Query, Response, SearchResult, SourceReference
+from ..llm import ClaudeClient, truncate_context
+from ..models import ImageContent, Query, Response, SearchResult, SourceReference
 
 logger = logging.getLogger(__name__)
 
@@ -54,18 +53,18 @@ class RAGService:
         self,
         query: Query,
         conversation_context: str | None = None,
+        images: list[ImageContent] | None = None,
     ) -> Response:
         """질문에 대한 답변 생성.
 
         Args:
             query: 사용자 질문
             conversation_context: 이전 대화 컨텍스트 (선택)
+            images: 이미지 콘텐츠 목록 (선택, Claude Vision API용)
 
         Returns:
             생성된 답변
         """
-        start_time = time.time()
-
         try:
             # 1. 벡터 검색
             search_results = self._search_documents(query.text)
@@ -78,9 +77,12 @@ class RAGService:
             # 2. 관련성 있는 결과만 필터링
             relevant_results = [r for r in search_results if r.is_relevant]
 
+            # 벡터DB에 결과 없어도 MCP 도구로 답변 시도 (MCP 서버 활성화 시)
             if not relevant_results:
-                logger.info("관련 문서 없음 - 폴백 응답 생성")
-                return Response.fallback_response("관련 문서를 찾을 수 없습니다.")
+                logger.info("벡터DB 결과 없음 - MCP 도구 사용하여 답변 시도")
+                return await self._answer_with_mcp_fallback(
+                    query, conversation_context, images
+                )
 
             # 3. 토큰 제한에 맞게 컨텍스트 자르기
             truncated_results = truncate_context(
@@ -88,38 +90,77 @@ class RAGService:
                 max_tokens=self.settings.rag_max_context_tokens,
             )
 
-            # 4. 프롬프트 생성
-            prompt = build_rag_prompt(
+            # 4. Claude LLM 호출 (이미지 포함)
+            response = await self._claude_client.generate_response(
                 question=query.text,
                 search_results=truncated_results,
                 conversation_context=conversation_context,
-            )
-
-            # 5. Claude LLM 호출
-            llm_response = await self._claude_client.generate(prompt)
-
-            # 6. 소스 참조 생성
-            sources = self._build_source_references(truncated_results)
-
-            # 7. 응답 생성
-            generation_time_ms = int((time.time() - start_time) * 1000)
-
-            response = Response(
-                text=llm_response.text,
-                sources=sources,
-                model=llm_response.model,
-                tokens_used=llm_response.tokens_used,
-                generation_time_ms=generation_time_ms,
+                images=images,
             )
 
             logger.info(
-                f"답변 생성 완료: {llm_response.tokens_used} tokens, {generation_time_ms}ms"
+                "답변 생성 완료: %d tokens, %dms",
+                response.tokens_used,
+                response.generation_time_ms,
             )
 
             return response
 
         except Exception as e:
             logger.error(f"답변 생성 실패: {e}", exc_info=True)
+            return Response.fallback_response("답변 생성 중 오류가 발생했습니다.")
+
+    async def _answer_with_mcp_fallback(
+        self,
+        query: Query,
+        conversation_context: str | None = None,
+        images: list[ImageContent] | None = None,
+    ) -> Response:
+        """MCP 도구를 사용하여 답변 생성 (벡터DB 폴백).
+
+        벡터DB에서 관련 문서를 찾지 못했을 때,
+        MCP 서버(Swagger, Grafana 등)를 직접 호출하여 정보를 가져옵니다.
+
+        Args:
+            query: 사용자 질문
+            conversation_context: 이전 대화 컨텍스트 (선택)
+            images: 이미지 콘텐츠 목록 (선택)
+
+        Returns:
+            생성된 답변
+        """
+        # MCP 서버가 활성화되어 있는지 확인
+        if not self._claude_client._mcp_servers:
+            logger.info("MCP 서버 없음 - 일반 폴백 응답 생성")
+            return Response.fallback_response(
+                "관련 문서를 찾을 수 없습니다. 질문을 더 구체적으로 해주세요."
+            )
+
+        try:
+            # MCP 도구 사용을 안내하는 프롬프트로 Claude 호출
+            response = await self._claude_client.generate_response(
+                question=query.text,
+                search_results=[],  # 빈 검색 결과
+                conversation_context=conversation_context,
+                images=images,
+            )
+
+            # MCP를 통해 답변을 생성했는지 확인
+            if response.text and len(response.text.strip()) > 0:
+                logger.info(
+                    "MCP 도구 사용 답변 생성 완료 - tokens=%d, time_ms=%d",
+                    response.tokens_used,
+                    response.generation_time_ms,
+                )
+                return response
+            else:
+                # MCP도 답변 못함 - 최종 폴백
+                return Response.fallback_response(
+                    "관련 문서를 찾을 수 없습니다. 다른 키워드로 질문해 주세요."
+                )
+
+        except Exception as e:
+            logger.error(f"MCP 폴백 답변 생성 실패: {e}", exc_info=True)
             return Response.fallback_response("답변 생성 중 오류가 발생했습니다.")
 
     def _search_documents(self, query_text: str) -> list[SearchResult]:

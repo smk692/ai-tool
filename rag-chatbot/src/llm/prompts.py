@@ -43,7 +43,13 @@ def build_rag_prompt(
             parts.append("")
     else:
         parts.append("## 참고 문서")
-        parts.append("검색된 관련 문서가 없습니다.")
+        parts.append("벡터DB에서 검색된 관련 문서가 없습니다.")
+        parts.append("")
+        parts.append("**MCP 도구를 사용하여 실시간으로 정보를 조회하세요.**")
+        parts.append("- API 관련 질문: Swagger MCP 도구 사용")
+        parts.append("- 모니터링/메트릭 질문: Grafana MCP 도구 사용")
+        parts.append("- 에러/이슈 질문: Sentry MCP 도구 사용")
+        parts.append("- AWS 인프라 질문: AWS MCP 도구 사용")
         parts.append("")
 
     # 질문 추가

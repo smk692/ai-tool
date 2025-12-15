@@ -50,10 +50,37 @@ class Settings(BaseSettings):
 
     # 대화 컨텍스트 설정
     conversation_ttl_seconds: int = Field(
-        default=3600, ge=60, description="대화 TTL (초)"
+        default=10800, ge=60, description="대화 TTL (초) - 기본 3시간"
     )
     conversation_max_messages: int = Field(
         default=10, ge=1, le=50, description="대화 최대 메시지 수"
+    )
+
+    # DM 대화 컨텍스트 설정
+    dm_conversation_max_messages: int = Field(
+        default=3, ge=1, le=10, description="DM 대화 최대 메시지 수"
+    )
+
+    # 리액션 설정
+    reaction_processing: str = Field(
+        default="eyes", description="처리 중 리액션 (👀)"
+    )
+    reaction_done: str = Field(
+        default="white_check_mark", description="완료 리액션 (✅)"
+    )
+
+    # 이미지 처리 설정
+    image_processing_enabled: bool = Field(
+        default=True, description="이미지 처리 활성화 여부"
+    )
+    image_max_size_mb: int = Field(
+        default=20, ge=1, le=50, description="최대 이미지 크기 (MB)"
+    )
+    image_max_count: int = Field(
+        default=5, ge=1, le=10, description="요청당 최대 이미지 수"
+    )
+    image_download_timeout: int = Field(
+        default=30, ge=5, le=120, description="이미지 다운로드 타임아웃 (초)"
     )
 
     # 로깅 설정
@@ -62,6 +89,47 @@ class Settings(BaseSettings):
     )
     log_format: Literal["json", "text"] = Field(
         default="json", description="로그 형식"
+    )
+
+    # MCP 서버 설정 - Grafana (필수: URL, 토큰)
+    grafana_url: str | None = Field(default=None, description="Grafana URL")
+    grafana_service_account_token: str | None = Field(
+        default=None, description="Grafana Service Account 토큰"
+    )
+
+    # MCP 서버 설정 - Sentry (필수: 토큰, 선택: 호스트)
+    sentry_access_token: str | None = Field(default=None, description="Sentry Access 토큰")
+    sentry_host: str | None = Field(default=None, description="Sentry 호스트 (Self-hosted)")
+
+    # MCP 서버 설정 - AWS (필수: 프로필, 리전)
+    aws_profile: str = Field(default="default", description="AWS 프로필")
+    aws_region: str = Field(default="ap-northeast-2", description="AWS 리전")
+
+    # MCP 서버 설정 - Swagger (필수: JAR 경로)
+    swagger_mcp_jar_path: str | None = Field(default=None, description="Swagger MCP JAR 경로")
+
+    # MCP 서버 설정 - Jira (필수: 사이트명, 이메일, API 토큰)
+    atlassian_site_name: str | None = Field(
+        default=None, description="Atlassian 사이트명 (예: mycompany.atlassian.net의 mycompany)"
+    )
+    atlassian_user_email: str | None = Field(
+        default=None, description="Atlassian 사용자 이메일"
+    )
+    atlassian_api_token: str | None = Field(
+        default=None, description="Atlassian API 토큰"
+    )
+
+    # MCP 서버 설정 - Notion (OAuth 인증 사용)
+    notion_mcp_enabled: bool = Field(
+        default=False, description="Notion MCP 활성화 여부 (OAuth 인증 필요)"
+    )
+
+    # MCP 서버 설정 - Slack (채널/메시지/사용자 조회)
+    slack_mcp_enabled: bool = Field(
+        default=False, description="Slack MCP 활성화 여부"
+    )
+    slack_team_id: str | None = Field(
+        default=None, description="Slack Team ID (Slack MCP용)"
     )
 
     model_config = {

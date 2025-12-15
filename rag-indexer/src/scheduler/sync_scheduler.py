@@ -10,8 +10,8 @@
     - 작업 상태 추적 및 에러 관리
 """
 
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Callable, Optional
 
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.memory import MemoryJobStore
@@ -21,7 +21,7 @@ from apscheduler.triggers.cron import CronTrigger
 from ..config import get_settings
 from ..connectors import NotionConnector, SwaggerConnector
 from ..logging_config import Loggers
-from ..models import Source, SourceType, SyncJob, SyncJobStatus, SyncJobTrigger
+from ..models import Source, SourceType, SyncJob, SyncJobTrigger
 from ..services import get_indexer
 from ..storage import get_storage
 
@@ -60,7 +60,7 @@ class SyncScheduler:
         """
         self.cron_expression = cron_expression
         self.max_workers = max_workers
-        self._scheduler: Optional[BackgroundScheduler] = None
+        self._scheduler: BackgroundScheduler | None = None
         self._running = False
 
     @property
@@ -142,8 +142,8 @@ class SyncScheduler:
 
     def trigger_sync(
         self,
-        source_id: Optional[str] = None,
-        callback: Optional[Callable[[SyncJob], None]] = None,
+        source_id: str | None = None,
+        callback: Callable[[SyncJob], None] | None = None,
     ) -> SyncJob:
         """즉시 동기화 작업을 트리거합니다.
 
@@ -168,7 +168,7 @@ class SyncScheduler:
         self._execute_sync(job, callback)
         return job
 
-    def get_next_run(self) -> Optional[datetime]:
+    def get_next_run(self) -> datetime | None:
         """다음 예정된 실행 시간을 반환합니다.
 
         스케줄러가 실행 중이 아니거나 작업이 없으면
@@ -210,7 +210,7 @@ class SyncScheduler:
     def _execute_sync(
         self,
         job: SyncJob,
-        callback: Optional[Callable[[SyncJob], None]] = None,
+        callback: Callable[[SyncJob], None] | None = None,
     ) -> None:
         """동기화 작업을 실행합니다.
 
@@ -401,11 +401,11 @@ class SyncScheduler:
 
 
 # 모듈 레벨 싱글톤 인스턴스
-_scheduler: Optional[SyncScheduler] = None
+_scheduler: SyncScheduler | None = None
 
 
 def get_scheduler(
-    cron_expression: Optional[str] = None,
+    cron_expression: str | None = None,
 ) -> SyncScheduler:
     """스케줄러 인스턴스를 반환합니다.
 

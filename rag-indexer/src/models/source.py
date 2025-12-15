@@ -5,7 +5,7 @@
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Annotated, Optional, Union
+from typing import Annotated
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -62,7 +62,7 @@ class SwaggerSourceConfig(BaseModel):
         ...,
         description="Swagger/OpenAPI JSON 명세 URL",
     )
-    auth_header: Optional[str] = Field(
+    auth_header: str | None = Field(
         default=None,
         description="선택적 인증 헤더 값",
     )
@@ -70,7 +70,7 @@ class SwaggerSourceConfig(BaseModel):
 
 # 소스 설정 유니온 타입 (Notion 또는 Swagger)
 SourceConfig = Annotated[
-    Union[NotionSourceConfig, SwaggerSourceConfig],
+    NotionSourceConfig | SwaggerSourceConfig,
     Field(discriminator=None),
 ]
 
@@ -119,7 +119,7 @@ class Source(BaseModel):
         default_factory=lambda: datetime.now(UTC),
         description="마지막 업데이트 타임스탬프",
     )
-    last_synced_at: Optional[datetime] = Field(
+    last_synced_at: datetime | None = Field(
         default=None,
         description="마지막 성공적인 동기화 타임스탬프",
     )

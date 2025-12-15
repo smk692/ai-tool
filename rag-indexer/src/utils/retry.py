@@ -9,15 +9,17 @@ API 호출 및 외부 서비스에 대한 설정 가능한 재시도 데코레�
     - 재시도 시도 로깅
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Type, Union
+from typing import Any
 
 import httpx
 import structlog
 from tenacity import (
     AsyncRetrying,
-    RetryError,
     Retrying,
+    after_log,
+    before_sleep_log,
     retry,
     retry_if_exception,
     retry_if_exception_type,
@@ -25,8 +27,6 @@ from tenacity import (
     stop_after_delay,
     wait_exponential,
     wait_random_exponential,
-    before_sleep_log,
-    after_log,
 )
 
 logger = structlog.get_logger(__name__)
@@ -53,7 +53,7 @@ class RetryConfig:
     min_wait: float = 1.0
     max_wait: float = 60.0
     exponential_base: float = 2.0
-    max_delay: Optional[float] = None
+    max_delay: float | None = None
     jitter: bool = True
 
     def to_tenacity_kwargs(self) -> dict[str, Any]:
@@ -115,7 +115,7 @@ QDRANT_CONFIG = RetryConfig(
 
 
 # 재시도 가능한 일반적인 예외들
-NETWORK_EXCEPTIONS: tuple[Type[Exception], ...] = (
+NETWORK_EXCEPTIONS: tuple[type[Exception], ...] = (
     httpx.ConnectError,
     httpx.ConnectTimeout,
     httpx.ReadTimeout,
@@ -125,7 +125,7 @@ NETWORK_EXCEPTIONS: tuple[Type[Exception], ...] = (
     TimeoutError,
 )
 
-HTTP_RETRYABLE_EXCEPTIONS: tuple[Type[Exception], ...] = (
+HTTP_RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
     httpx.HTTPStatusError,  # retry_if 콜백에서 필터링됨
     *NETWORK_EXCEPTIONS,
 )
@@ -173,8 +173,8 @@ def is_retryable_notion_error(exception: BaseException) -> bool:
 
 def create_retry_decorator(
     config: RetryConfig = DEFAULT_CONFIG,
-    retry_on: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None,
-    retry_if: Optional[Callable[[BaseException], bool]] = None,
+    retry_on: type[Exception] | tuple[type[Exception], ...] | None = None,
+    retry_if: Callable[[BaseException], bool] | None = None,
     log_retries: bool = True,
 ) -> Callable:
     """커스텀 설정으로 재시도 데코레이터를 생성합니다.
@@ -214,11 +214,11 @@ def create_retry_decorator(
 
 
 def with_retry(
-    func: Optional[Callable] = None,
+    func: Callable | None = None,
     *,
     config: RetryConfig = DEFAULT_CONFIG,
-    retry_on: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None,
-    retry_if: Optional[Callable[[BaseException], bool]] = None,
+    retry_on: type[Exception] | tuple[type[Exception], ...] | None = None,
+    retry_if: Callable[[BaseException], bool] | None = None,
     log_retries: bool = True,
 ) -> Callable:
     """함수에 재시도 로직을 추가하는 데코레이터.
@@ -259,7 +259,7 @@ def with_retry(
 
 
 # 일반적인 사용 사례를 위한 사전 구성된 데코레이터
-def notion_retry(func: Optional[Callable] = None) -> Callable:
+def notion_retry(func: Callable | None = None) -> Callable:
     """Notion API 호출용 재시도 데코레이터.
 
     Rate limit과 서버 오류에 대해 적절한 백오프로 재시도합니다.
@@ -285,7 +285,7 @@ def notion_retry(func: Optional[Callable] = None) -> Callable:
     return decorator
 
 
-def http_retry(func: Optional[Callable] = None) -> Callable:
+def http_retry(func: Callable | None = None) -> Callable:
     """일반 HTTP 호출용 재시도 데코레이터.
 
     네트워크 오류와 5xx/429 상태 코드에 대해 재시도합니다.
@@ -311,7 +311,7 @@ def http_retry(func: Optional[Callable] = None) -> Callable:
     return decorator
 
 
-def qdrant_retry(func: Optional[Callable] = None) -> Callable:
+def qdrant_retry(func: Callable | None = None) -> Callable:
     """Qdrant 작업용 재시도 데코레이터.
 
     네트워크 오류와 연결 문제에 대해 재시도합니다.
@@ -364,8 +364,8 @@ class RetryContext:
     def __init__(
         self,
         config: RetryConfig = DEFAULT_CONFIG,
-        retry_on: Optional[Union[Type[Exception], tuple[Type[Exception], ...]]] = None,
-        retry_if: Optional[Callable[[BaseException], bool]] = None,
+        retry_on: type[Exception] | tuple[type[Exception], ...] | None = None,
+        retry_if: Callable[[BaseException], bool] | None = None,
     ):
         """재시도 컨텍스트를 초기화합니다.
 
@@ -377,7 +377,7 @@ class RetryContext:
         self.config = config
         self.retry_on = retry_on
         self.retry_if = retry_if
-        self._retrying: Optional[Retrying] = None
+        self._retrying: Retrying | None = None
 
     def __enter__(self) -> "Retrying":
         """동기 컨텍스트 진입.

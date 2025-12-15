@@ -5,7 +5,6 @@
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -55,11 +54,11 @@ class SyncError(BaseModel):
         retryable: 재시도 가능 여부
     """
 
-    document_id: Optional[str] = Field(
+    document_id: str | None = Field(
         default=None,
         description="오류가 발생한 문서 ID",
     )
-    source_id: Optional[str] = Field(
+    source_id: str | None = Field(
         default=None,
         description="오류가 발생한 소스 ID",
     )
@@ -107,7 +106,7 @@ class SyncJob(BaseModel):
         default_factory=lambda: str(uuid4()),
         description="고유 작업 식별자 (UUID)",
     )
-    source_id: Optional[str] = Field(
+    source_id: str | None = Field(
         default=None,
         description="대상 소스 ID (None이면 모든 소스)",
     )
@@ -119,11 +118,11 @@ class SyncJob(BaseModel):
         default=SyncJobStatus.PENDING,
         description="현재 작업 상태",
     )
-    started_at: Optional[datetime] = Field(
+    started_at: datetime | None = Field(
         default=None,
         description="작업 시작 시간",
     )
-    completed_at: Optional[datetime] = Field(
+    completed_at: datetime | None = Field(
         default=None,
         description="작업 완료 시간",
     )
@@ -159,7 +158,7 @@ class SyncJob(BaseModel):
         default_factory=list,
         description="발생한 오류 목록",
     )
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None,
         description="실패 시 주요 오류 메시지",
     )
@@ -195,8 +194,8 @@ class SyncJob(BaseModel):
         self,
         error_type: str,
         message: str,
-        document_id: Optional[str] = None,
-        source_id: Optional[str] = None,
+        document_id: str | None = None,
+        source_id: str | None = None,
         retryable: bool = False,
     ) -> None:
         """작업에 오류 추가.
@@ -219,7 +218,7 @@ class SyncJob(BaseModel):
         )
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """작업 소요 시간(초) 반환.
 
         Returns:
